@@ -267,76 +267,48 @@ go-hexagonal-api/
 │       └── main.go
 │
 ├── internal/
-│   │
-│   ├── core/
-│   │   ├── domain/
-│   │   │   ├── user.go
-│   │   │   ├── role.go
-│   │   │   ├── errors.go
-│   │   │   └── value_objects.go
+│   ├── modules/
+│   │   ├── users/
+│   │   │   ├── domain/
+│   │   │   │   ├── user.go
+│   │   │   │   └── errors.go
+│   │   │   ├── application/
+│   │   │   │   ├── ports.go
+│   │   │   │   ├── service.go
+│   │   │   │   └── service_test.go
+│   │   │   ├── infrastructure/
+│   │   │   │   ├── persistence/
+│   │   │   │   │   ├── memory/
+│   │   │   │   │   └── postgres/
+│   │   │   │   │       ├── models/
+│   │   │   │   │       ├── mappers/
+│   │   │   │   │       └── user_repository.go
+│   │   │   │   ├── security/
+│   │   │   │   └── mail/
+│   │   │   └── delivery/
+│   │   │       └── http/
+│   │   │           └── v1/
+│   │   │               ├── controller.go
+│   │   │               └── dto.go
 │   │   │
-│   │   ├── ports/
-│   │   │   ├── user_repository.go
-│   │   │   ├── user_service.go
-│   │   │   ├── token_provider.go
-│   │   │   ├── cache.go
-│   │   │   └── mailer.go
-│   │   │
-│   │   └── services/
-│   │       ├── user_service.go
-│   │       ├── auth_service.go
-│   │       └── user_service_test.go
-│   │
-│   ├── adapters/
-│   │   │
-│   │   ├── handler/
-│   │   │   └── http/
-│   │   │       ├── dto/
-│   │   │       │   ├── user_request.go
-│   │   │       │   ├── user_response.go
-│   │   │       │   └── error_response.go
-│   │   │       │
-│   │   │       ├── middleware/
-│   │   │       │   ├── auth.go
-│   │   │       │   ├── cors.go
-│   │   │       │   ├── logger.go
-│   │   │       │   ├── recovery.go
-│   │   │       │   ├── rate_limit.go
-│   │   │       │   └── request_id.go
-│   │   │       │
-│   │   │       ├── user_handler.go
-│   │   │       ├── auth_handler.go
-│   │   │       └── health_handler.go
-│   │   │
-│   │   ├── repository/
-│   │   │   └── postgres/
-│   │   │       ├── models/
-│   │   │       │   └── user_model.go
-│   │   │       ├── user_repository.go
-│   │   │       └── mapper.go
-│   │   │
-│   │   ├── cache/
-│   │   │   └── redis/
-│   │   │       └── redis_cache.go
-│   │   │
-│   │   ├── security/
-│   │   │   ├── jwt_provider.go
-│   │   │   └── password_hasher.go
-│   │   │
-│   │   └── external/
-│   │       ├── mail/
-│   │       └── storage/
-│   │
-│   ├── config/
-│   │   └── config.go
+│   │   └── auth/
+│   │       ├── domain/
+│   │       ├── application/
+│   │       ├── infrastructure/
+│   │       │   ├── cache/
+│   │       │   └── security/
+│   │       └── delivery/
+│   │           └── http/
+│   │               └── v1/
 │   │
 │   └── platform/
+│       ├── config/
 │       ├── database/
-│       │   └── postgres.go
+│       ├── http/
+│       │   ├── middleware/
+│       │   └── response/
 │       ├── logger/
-│       │   └── logger.go
 │       └── server/
-│           └── server.go
 │
 ├── migrations/
 │   ├── 000001_create_users.up.sql
