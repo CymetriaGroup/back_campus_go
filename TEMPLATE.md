@@ -18,8 +18,8 @@ Este repositorio incluye una referencia ejecutable de arquitectura hexagonal. Ar
 
 ## Puntos de extensión deliberados
 
-- Implementar `ports.UserRepository` con PostgreSQL/GORM o `database/sql`.
-- Implementar `ports.Cache` con Redis.
+- Implementar `users/application.UserRepository` en `internal/modules/users/infrastructure/persistence/postgres/` con PostgreSQL/GORM o `database/sql`.
+- Implementar `auth/application.Cache` en `internal/modules/auth/infrastructure/cache/redis/` con Redis.
 - Sustituir `LogMailer` por SMTP/SES/SendGrid.
 - Sustituir el token HMAC compacto por una librería JWT auditada si se requiere interoperabilidad JWT.
 - Conectar `/ready` a checks reales de PostgreSQL y Redis.
