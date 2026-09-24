@@ -340,6 +340,18 @@ go-hexagonal-api/
 
 ---
 
+## Generar un módulo
+
+Para crear la estructura hexagonal de un módulo sin preparar cada directorio manualmente:
+
+```bash
+make module MODULE=courses
+```
+
+El nombre debe estar en `snake_case` y el comando no sobrescribe módulos existentes. Se generan las capas `domain`, `application`, `infrastructure` y `delivery/http/v1`, junto con archivos Go mínimos listos para completar.
+
+---
+
 # 🚀 Stack recomendado
 
 | Componente          | Tecnología                 |
