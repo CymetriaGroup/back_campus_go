@@ -8,6 +8,54 @@ import (
 	"hexagonal-go-backend/internal/ent"
 )
 
+// The CourseCategoriesFunc type is an adapter to allow the use of ordinary
+// function as CourseCategories mutator.
+type CourseCategoriesFunc func(context.Context, *ent.CourseCategoriesMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CourseCategoriesFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CourseCategoriesMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CourseCategoriesMutation", m)
+}
+
+// The CourseTemplatesFunc type is an adapter to allow the use of ordinary
+// function as CourseTemplates mutator.
+type CourseTemplatesFunc func(context.Context, *ent.CourseTemplatesMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CourseTemplatesFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CourseTemplatesMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CourseTemplatesMutation", m)
+}
+
+// The TenantMixinFunc type is an adapter to allow the use of ordinary
+// function as TenantMixin mutator.
+type TenantMixinFunc func(context.Context, *ent.TenantMixinMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TenantMixinFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TenantMixinMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TenantMixinMutation", m)
+}
+
+// The TimeMixinFunc type is an adapter to allow the use of ordinary
+// function as TimeMixin mutator.
+type TimeMixinFunc func(context.Context, *ent.TimeMixinMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TimeMixinFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TimeMixinMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TimeMixinMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)

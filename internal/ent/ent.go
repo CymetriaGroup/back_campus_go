@@ -6,6 +6,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hexagonal-go-backend/internal/ent/coursecategories"
+	"hexagonal-go-backend/internal/ent/coursetemplates"
+	"hexagonal-go-backend/internal/ent/tenantmixin"
+	"hexagonal-go-backend/internal/ent/timemixin"
 	"hexagonal-go-backend/internal/ent/user"
 	"reflect"
 	"sync"
@@ -73,7 +77,11 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			user.Table: user.ValidColumn,
+			coursecategories.Table: coursecategories.ValidColumn,
+			coursetemplates.Table:  coursetemplates.ValidColumn,
+			tenantmixin.Table:      tenantmixin.ValidColumn,
+			timemixin.Table:        timemixin.ValidColumn,
+			user.Table:             user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)
