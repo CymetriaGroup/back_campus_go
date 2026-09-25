@@ -1,10 +1,10 @@
 # Estado de la implementación del template
 
-Este repositorio incluye una referencia ejecutable de arquitectura hexagonal. Arranca sin dependencias externas mediante adaptadores en memoria; PostgreSQL y Redis aparecen en Compose como puntos de extensión, pero la API no se conecta a ellos todavía.
+Este repositorio incluye una referencia ejecutable de arquitectura hexagonal. La API usa Ent con PostgreSQL para persistencia de usuarios; Redis permanece como punto de extensión y la cache actual funciona en memoria.
 
 ## Implementado
 
-- Dominio sin etiquetas HTTP/GORM y errores explícitos.
+- Dominio desacoplado de HTTP y Ent, con errores explícitos.
 - Puertos de usuarios, autenticación, tokens, hashing, cache y correo.
 - CRUD de usuarios, búsqueda, filtros, orden y paginación (máximo 100).
 - Login, refresh con rotación, logout, access tokens HMAC con expiración y RBAC.
@@ -13,12 +13,12 @@ Este repositorio incluye una referencia ejecutable de arquitectura hexagonal. Ar
 - Request ID, logs JSON, recovery, CORS, rate limit, límite de body y security headers.
 - `/health`, `/ready`, timeouts y graceful shutdown.
 - Configuración por entorno con validación fail-fast en producción.
-- Migración SQL, OpenAPI, Docker multi-stage, Compose, Makefile y GitHub Actions.
+- Esquema automático de Ent en desarrollo y migraciones versionadas con Atlas en producción, además de OpenAPI, Docker, Compose, Makefile y GitHub Actions.
 - Pruebas unitarias, HTTP y detector de carreras.
 
 ## Puntos de extensión deliberados
 
-- Implementar `users/application.UserRepository` en `internal/modules/users/infrastructure/persistence/postgres/` con PostgreSQL/GORM o `database/sql`.
+- El repositorio de usuarios usa Ent sobre PostgreSQL en `internal/modules/users/infrastructure/persistence/ent/`; los schemas se definen en `internal/ent/schema/`.
 - Implementar `auth/application.Cache` en `internal/modules/auth/infrastructure/cache/redis/` con Redis.
 - Sustituir `LogMailer` por SMTP/SES/SendGrid.
 - Sustituir el token HMAC compacto por una librería JWT auditada si se requiere interoperabilidad JWT.
@@ -48,4 +48,4 @@ curl -s http://localhost:8080/api/v1/users \
   -H 'Authorization: Bearer ACCESS_TOKEN'
 ```
 
-Consulte `docs/swagger/openapi.yaml` para el contrato y `migrations/` para el esquema inicial.
+Consulte `docs/swagger/openapi.yaml` para el contrato y `internal/ent/schema/` para el esquema de base de datos.

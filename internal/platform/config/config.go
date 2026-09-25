@@ -28,16 +28,23 @@ type SecurityConfig struct {
 	RateLimit                 int
 	AdminEmail, AdminPassword string
 }
-type DatabaseConfig struct{ URL string }
+type DatabaseConfig struct {
+	URL                        string
+	MaxOpenConns, MaxIdleConns int
+	ConnMaxLifetime            time.Duration
+}
 type RedisConfig struct{ Address string }
 
 func Load() (Config, error) {
-	c := Config{App: AppConfig{Name: get("APP_NAME", "hexagonal-go-api"), Env: get("APP_ENV", "development"), Port: get("APP_PORT", "8080"), LogLevel: get("LOG_LEVEL", "info"), AllowedOrigins: strings.Split(get("CORS_ALLOWED_ORIGINS", "http://localhost:3000"), ",")}, JWT: JWTConfig{Secret: get("JWT_SECRET", "change-me-in-production")}, Security: SecurityConfig{RateLimit: getInt("RATE_LIMIT", 100), AdminEmail: get("ADMIN_EMAIL", "admin@example.com"), AdminPassword: get("ADMIN_PASSWORD", "admin1234")}, Database: DatabaseConfig{URL: os.Getenv("DATABASE_URL")}, Redis: RedisConfig{Address: os.Getenv("REDIS_ADDRESS")}}
+	c := Config{App: AppConfig{Name: get("APP_NAME", "hexagonal-go-api"), Env: get("APP_ENV", "development"), Port: get("APP_PORT", "8080"), LogLevel: get("LOG_LEVEL", "info"), AllowedOrigins: strings.Split(get("CORS_ALLOWED_ORIGINS", "http://localhost:3000"), ",")}, JWT: JWTConfig{Secret: get("JWT_SECRET", "change-me-in-production")}, Security: SecurityConfig{RateLimit: getInt("RATE_LIMIT", 100), AdminEmail: get("ADMIN_EMAIL", "admin@example.com"), AdminPassword: get("ADMIN_PASSWORD", "admin1234")}, Database: DatabaseConfig{URL: get("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/app?sslmode=disable"), MaxOpenConns: getInt("DATABASE_MAX_OPEN_CONNS", 25), MaxIdleConns: getInt("DATABASE_MAX_IDLE_CONNS", 5)}, Redis: RedisConfig{Address: os.Getenv("REDIS_ADDRESS")}}
 	var err error
 	if c.App.ReadTimeout, err = duration("HTTP_READ_TIMEOUT", "15s"); err != nil {
 		return c, err
 	}
 	if c.App.WriteTimeout, err = duration("HTTP_WRITE_TIMEOUT", "15s"); err != nil {
+		return c, err
+	}
+	if c.Database.ConnMaxLifetime, err = duration("DATABASE_CONN_MAX_LIFETIME", "30m"); err != nil {
 		return c, err
 	}
 	c.App.IdleTimeout, _ = duration("HTTP_IDLE_TIMEOUT", "60s")
