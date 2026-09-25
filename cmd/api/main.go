@@ -17,9 +17,10 @@ import (
 	usershttp "hexagonal-go-backend/internal/modules/users/delivery/http/v1"
 	userdomain "hexagonal-go-backend/internal/modules/users/domain"
 	usermail "hexagonal-go-backend/internal/modules/users/infrastructure/mail"
-	memoryusers "hexagonal-go-backend/internal/modules/users/infrastructure/persistence/memory"
+	entusers "hexagonal-go-backend/internal/modules/users/infrastructure/persistence/ent"
 	usersecurity "hexagonal-go-backend/internal/modules/users/infrastructure/security"
 	"hexagonal-go-backend/internal/platform/config"
+	"hexagonal-go-backend/internal/platform/database"
 	httpplatform "hexagonal-go-backend/internal/platform/http"
 	"hexagonal-go-backend/internal/platform/logger"
 	"hexagonal-go-backend/internal/platform/server"
@@ -33,7 +34,19 @@ func main() {
 	}
 
 	log := logger.New(cfg.App.LogLevel)
-	userRepository := memoryusers.NewUserRepository()
+	autoMigrate := cfg.App.Env == "development"
+	entClient, _, err := database.OpenPostgres(context.Background(), cfg.Database.URL, cfg.Database.MaxOpenConns, cfg.Database.MaxIdleConns, cfg.Database.ConnMaxLifetime, autoMigrate)
+	if err != nil {
+		log.Error("failed to connect to postgres", "error", err)
+		os.Exit(1)
+	}
+	defer func() {
+		if err := entClient.Close(); err != nil {
+			log.Error("failed to close postgres", "error", err)
+		}
+	}()
+
+	userRepository := entusers.NewUserRepository(entClient)
 	passwordHasher := usersecurity.NewBcryptHasher(0)
 	mailer := usermail.NewLogMailer(log)
 	tokenProvider := authsecurity.NewHMACTokenProvider(cfg.JWT.Secret)
@@ -90,5 +103,8 @@ func seedAdmin(ctx context.Context, service usersapp.UserService, cfg config.Con
 		Password: cfg.Security.AdminPassword,
 		Role:     userdomain.RoleAdmin,
 	})
+	if errors.Is(err, userdomain.ErrEmailAlreadyExists) {
+		return nil
+	}
 	return err
 }

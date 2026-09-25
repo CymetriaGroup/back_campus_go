@@ -1,12 +1,18 @@
+
 APP := bin/api
 CMD := ./cmd/api
-MIGRATIONS := migrations
 MODULES_DIR := internal/modules
-DATABASE_URL ?= postgres://postgres:postgres@localhost:5432/app?sslmode=disable
+MIGRATIONS_DIR := file://migrations
+ATLAS ?= atlas
 
-.PHONY: run build test cover fmt fmt-check vet lint check migrate-up migrate-down docker-up docker-down module clean
+.PHONY: run build test cover fmt fmt-check vet lint check ent-generate ent-schema atlas-check migration-diff migrate-baseline migrate-apply migrate-status docker-up docker-down module clean
 
 run:
+	@if [ -f .env ]; then \
+		set -a; \
+		. ./.env; \
+		set +a; \
+	fi; \
 	go run $(CMD)
 
 build:
@@ -32,11 +38,86 @@ lint:
 
 check: fmt-check vet test build
 
-migrate-up:
-	migrate -path $(MIGRATIONS) -database "$(DATABASE_URL)" up
+ent-generate:
+	GOTOOLCHAIN=go1.26.0 go generate ./internal/ent
 
-migrate-down:
-	migrate -path $(MIGRATIONS) -database "$(DATABASE_URL)" down 1
+# Uso: make ent-schema NAME=Course
+ent-schema:
+	@if [ -z "$(NAME)" ]; then \
+		echo "Error: indica el nombre del schema. Uso: make ent-schema NAME=Course"; \
+		exit 1; \
+	fi
+	@if ! printf '%s' "$(NAME)" | grep -Eq '^[A-Z][A-Za-z0-9]*$$'; then \
+		echo "Error: NAME debe usar PascalCase, comenzar con mayúscula y contener solo letras o números."; \
+		exit 1; \
+	fi
+	@if [ -e "internal/ent/schema/$$(printf '%s' "$(NAME)" | tr '[:upper:]' '[:lower:]').go" ]; then \
+		echo "Error: el schema $(NAME) ya existe."; \
+		exit 1; \
+	fi
+	GOTOOLCHAIN=go1.26.0 go run entgo.io/ent/cmd/ent new --target internal/ent/schema $(NAME)
+	$(MAKE) ent-generate
+
+atlas-check:
+	@command -v $(ATLAS) >/dev/null 2>&1 || { \
+		echo "Error: Atlas CLI no está instalado. macOS: brew install ariga/tap/atlas"; \
+		exit 1; \
+	}
+
+# Uso: make migration-diff NAME=add_courses
+migration-diff: atlas-check
+	@if [ -z "$(NAME)" ]; then \
+		echo "Error: indica el nombre de la migración. Uso: make migration-diff NAME=add_courses"; \
+		exit 1; \
+	fi
+	@if ! printf '%s' "$(NAME)" | grep -Eq '^[a-z][a-z0-9_]*$$'; then \
+		echo "Error: NAME debe usar snake_case."; \
+		exit 1; \
+	fi
+	GOTOOLCHAIN=go1.26.0 $(ATLAS) migrate diff $(NAME) \
+		--dir "$(MIGRATIONS_DIR)" \
+		--to "ent://internal/ent/schema" \
+		--dev-url "docker://postgres/17/dev?search_path=public"
+
+# Uso único al adoptar Atlas sobre una base ya creada por Ent:
+# make migrate-baseline VERSION=20260925003527
+migrate-baseline: atlas-check
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Error: indica la versión inicial. Uso: make migrate-baseline VERSION=20260925003527"; \
+		exit 1; \
+	fi
+	@if ! printf '%s' "$(VERSION)" | grep -Eq '^[0-9]+$$'; then \
+		echo "Error: VERSION debe contener únicamente el prefijo numérico de la migración."; \
+		exit 1; \
+	fi
+	@if [ ! -f .env ]; then \
+		echo "Error: no existe .env con DATABASE_URL."; \
+		exit 1; \
+	fi; \
+	set -a; \
+	. ./.env; \
+	set +a; \
+	GOTOOLCHAIN=go1.26.0 $(ATLAS) migrate apply --dir "$(MIGRATIONS_DIR)" --url "$$DATABASE_URL" --baseline "$(VERSION)"
+
+migrate-apply: atlas-check
+	@if [ ! -f .env ]; then \
+		echo "Error: no existe .env con DATABASE_URL."; \
+		exit 1; \
+	fi; \
+	set -a; \
+	. ./.env; \
+	set +a; \
+	GOTOOLCHAIN=go1.26.0 $(ATLAS) migrate apply --dir "$(MIGRATIONS_DIR)" --url "$$DATABASE_URL"
+
+migrate-status: atlas-check
+	@if [ ! -f .env ]; then \
+		echo "Error: no existe .env con DATABASE_URL."; \
+		exit 1; \
+	fi; \
+	set -a; \
+	. ./.env; \
+	set +a; \
+	GOTOOLCHAIN=go1.26.0 $(ATLAS) migrate status --dir "$(MIGRATIONS_DIR)" --url "$$DATABASE_URL"
 
 docker-up:
 	docker compose up -d --build
@@ -64,8 +145,7 @@ module:
 			"$$base/domain" \
 			"$$base/application" \
 			"$$base/infrastructure/persistence/memory" \
-			"$$base/infrastructure/persistence/postgres/models" \
-			"$$base/infrastructure/persistence/postgres/mappers" \
+			"$$base/infrastructure/persistence/ent" \
 			"$$base/infrastructure/security" \
 			"$$base/infrastructure/mail" \
 			"$$base/delivery/http/v1"; \
@@ -78,8 +158,7 @@ module:
 		printf 'package v1\n' > "$$base/delivery/http/v1/dto.go"; \
 		touch \
 			"$$base/infrastructure/persistence/memory/.gitkeep" \
-			"$$base/infrastructure/persistence/postgres/models/.gitkeep" \
-			"$$base/infrastructure/persistence/postgres/mappers/.gitkeep" \
+			"$$base/infrastructure/persistence/ent/.gitkeep" \
 			"$$base/infrastructure/security/.gitkeep" \
 			"$$base/infrastructure/mail/.gitkeep"; \
 		echo "Módulo $(MODULE) creado en $$base"
