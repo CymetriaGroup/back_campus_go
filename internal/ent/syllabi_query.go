@@ -5,8 +5,9 @@ package ent
 import (
 	"context"
 	"fmt"
+	"hexagonal-go-backend/internal/ent/courseversions"
 	"hexagonal-go-backend/internal/ent/predicate"
-	"hexagonal-go-backend/internal/ent/timemixin"
+	"hexagonal-go-backend/internal/ent/syllabi"
 	"math"
 
 	"entgo.io/ent"
@@ -15,64 +16,87 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// TimeMixinQuery is the builder for querying TimeMixin entities.
-type TimeMixinQuery struct {
+// SyllabiQuery is the builder for querying Syllabi entities.
+type SyllabiQuery struct {
 	config
-	ctx        *QueryContext
-	order      []timemixin.OrderOption
-	inters     []Interceptor
-	predicates []predicate.TimeMixin
+	ctx         *QueryContext
+	order       []syllabi.OrderOption
+	inters      []Interceptor
+	predicates  []predicate.Syllabi
+	withVersion *CourseVersionsQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the TimeMixinQuery builder.
-func (_q *TimeMixinQuery) Where(ps ...predicate.TimeMixin) *TimeMixinQuery {
+// Where adds a new predicate for the SyllabiQuery builder.
+func (_q *SyllabiQuery) Where(ps ...predicate.Syllabi) *SyllabiQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *TimeMixinQuery) Limit(limit int) *TimeMixinQuery {
+func (_q *SyllabiQuery) Limit(limit int) *SyllabiQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *TimeMixinQuery) Offset(offset int) *TimeMixinQuery {
+func (_q *SyllabiQuery) Offset(offset int) *SyllabiQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *TimeMixinQuery) Unique(unique bool) *TimeMixinQuery {
+func (_q *SyllabiQuery) Unique(unique bool) *SyllabiQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *TimeMixinQuery) Order(o ...timemixin.OrderOption) *TimeMixinQuery {
+func (_q *SyllabiQuery) Order(o ...syllabi.OrderOption) *SyllabiQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
-// First returns the first TimeMixin entity from the query.
-// Returns a *NotFoundError when no TimeMixin was found.
-func (_q *TimeMixinQuery) First(ctx context.Context) (*TimeMixin, error) {
+// QueryVersion chains the current query on the "version" edge.
+func (_q *SyllabiQuery) QueryVersion() *CourseVersionsQuery {
+	query := (&CourseVersionsClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(syllabi.Table, syllabi.FieldID, selector),
+			sqlgraph.To(courseversions.Table, courseversions.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, syllabi.VersionTable, syllabi.VersionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// First returns the first Syllabi entity from the query.
+// Returns a *NotFoundError when no Syllabi was found.
+func (_q *SyllabiQuery) First(ctx context.Context) (*Syllabi, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{timemixin.Label}
+		return nil, &NotFoundError{syllabi.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *TimeMixinQuery) FirstX(ctx context.Context) *TimeMixin {
+func (_q *SyllabiQuery) FirstX(ctx context.Context) *Syllabi {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -80,22 +104,22 @@ func (_q *TimeMixinQuery) FirstX(ctx context.Context) *TimeMixin {
 	return node
 }
 
-// FirstID returns the first TimeMixin ID from the query.
-// Returns a *NotFoundError when no TimeMixin ID was found.
-func (_q *TimeMixinQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+// FirstID returns the first Syllabi ID from the query.
+// Returns a *NotFoundError when no Syllabi ID was found.
+func (_q *SyllabiQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{timemixin.Label}
+		err = &NotFoundError{syllabi.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *TimeMixinQuery) FirstIDX(ctx context.Context) int {
+func (_q *SyllabiQuery) FirstIDX(ctx context.Context) string {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -103,10 +127,10 @@ func (_q *TimeMixinQuery) FirstIDX(ctx context.Context) int {
 	return id
 }
 
-// Only returns a single TimeMixin entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one TimeMixin entity is found.
-// Returns a *NotFoundError when no TimeMixin entities are found.
-func (_q *TimeMixinQuery) Only(ctx context.Context) (*TimeMixin, error) {
+// Only returns a single Syllabi entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one Syllabi entity is found.
+// Returns a *NotFoundError when no Syllabi entities are found.
+func (_q *SyllabiQuery) Only(ctx context.Context) (*Syllabi, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -115,14 +139,14 @@ func (_q *TimeMixinQuery) Only(ctx context.Context) (*TimeMixin, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{timemixin.Label}
+		return nil, &NotFoundError{syllabi.Label}
 	default:
-		return nil, &NotSingularError{timemixin.Label}
+		return nil, &NotSingularError{syllabi.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *TimeMixinQuery) OnlyX(ctx context.Context) *TimeMixin {
+func (_q *SyllabiQuery) OnlyX(ctx context.Context) *Syllabi {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -130,11 +154,11 @@ func (_q *TimeMixinQuery) OnlyX(ctx context.Context) *TimeMixin {
 	return node
 }
 
-// OnlyID is like Only, but returns the only TimeMixin ID in the query.
-// Returns a *NotSingularError when more than one TimeMixin ID is found.
+// OnlyID is like Only, but returns the only Syllabi ID in the query.
+// Returns a *NotSingularError when more than one Syllabi ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *TimeMixinQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *SyllabiQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -142,15 +166,15 @@ func (_q *TimeMixinQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{timemixin.Label}
+		err = &NotFoundError{syllabi.Label}
 	default:
-		err = &NotSingularError{timemixin.Label}
+		err = &NotSingularError{syllabi.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *TimeMixinQuery) OnlyIDX(ctx context.Context) int {
+func (_q *SyllabiQuery) OnlyIDX(ctx context.Context) string {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -158,18 +182,18 @@ func (_q *TimeMixinQuery) OnlyIDX(ctx context.Context) int {
 	return id
 }
 
-// All executes the query and returns a list of TimeMixins.
-func (_q *TimeMixinQuery) All(ctx context.Context) ([]*TimeMixin, error) {
+// All executes the query and returns a list of Syllabis.
+func (_q *SyllabiQuery) All(ctx context.Context) ([]*Syllabi, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*TimeMixin, *TimeMixinQuery]()
-	return withInterceptors[[]*TimeMixin](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*Syllabi, *SyllabiQuery]()
+	return withInterceptors[[]*Syllabi](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *TimeMixinQuery) AllX(ctx context.Context) []*TimeMixin {
+func (_q *SyllabiQuery) AllX(ctx context.Context) []*Syllabi {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -177,20 +201,20 @@ func (_q *TimeMixinQuery) AllX(ctx context.Context) []*TimeMixin {
 	return nodes
 }
 
-// IDs executes the query and returns a list of TimeMixin IDs.
-func (_q *TimeMixinQuery) IDs(ctx context.Context) (ids []int, err error) {
+// IDs executes the query and returns a list of Syllabi IDs.
+func (_q *SyllabiQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(timemixin.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(syllabi.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *TimeMixinQuery) IDsX(ctx context.Context) []int {
+func (_q *SyllabiQuery) IDsX(ctx context.Context) []string {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -199,16 +223,16 @@ func (_q *TimeMixinQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (_q *TimeMixinQuery) Count(ctx context.Context) (int, error) {
+func (_q *SyllabiQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*TimeMixinQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*SyllabiQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *TimeMixinQuery) CountX(ctx context.Context) int {
+func (_q *SyllabiQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -217,7 +241,7 @@ func (_q *TimeMixinQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *TimeMixinQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *SyllabiQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -230,7 +254,7 @@ func (_q *TimeMixinQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *TimeMixinQuery) ExistX(ctx context.Context) bool {
+func (_q *SyllabiQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -238,22 +262,34 @@ func (_q *TimeMixinQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the TimeMixinQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the SyllabiQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *TimeMixinQuery) Clone() *TimeMixinQuery {
+func (_q *SyllabiQuery) Clone() *SyllabiQuery {
 	if _q == nil {
 		return nil
 	}
-	return &TimeMixinQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]timemixin.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.TimeMixin{}, _q.predicates...),
+	return &SyllabiQuery{
+		config:      _q.config,
+		ctx:         _q.ctx.Clone(),
+		order:       append([]syllabi.OrderOption{}, _q.order...),
+		inters:      append([]Interceptor{}, _q.inters...),
+		predicates:  append([]predicate.Syllabi{}, _q.predicates...),
+		withVersion: _q.withVersion.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithVersion tells the query-builder to eager-load the nodes that are connected to
+// the "version" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SyllabiQuery) WithVersion(opts ...func(*CourseVersionsQuery)) *SyllabiQuery {
+	query := (&CourseVersionsClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withVersion = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -266,15 +302,15 @@ func (_q *TimeMixinQuery) Clone() *TimeMixinQuery {
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.TimeMixin.Query().
-//		GroupBy(timemixin.FieldCreatedAt).
+//	client.Syllabi.Query().
+//		GroupBy(syllabi.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *TimeMixinQuery) GroupBy(field string, fields ...string) *TimeMixinGroupBy {
+func (_q *SyllabiQuery) GroupBy(field string, fields ...string) *SyllabiGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &TimeMixinGroupBy{build: _q}
+	grbuild := &SyllabiGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = timemixin.Label
+	grbuild.label = syllabi.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -288,23 +324,23 @@ func (_q *TimeMixinQuery) GroupBy(field string, fields ...string) *TimeMixinGrou
 //		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
-//	client.TimeMixin.Query().
-//		Select(timemixin.FieldCreatedAt).
+//	client.Syllabi.Query().
+//		Select(syllabi.FieldCreatedAt).
 //		Scan(ctx, &v)
-func (_q *TimeMixinQuery) Select(fields ...string) *TimeMixinSelect {
+func (_q *SyllabiQuery) Select(fields ...string) *SyllabiSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &TimeMixinSelect{TimeMixinQuery: _q}
-	sbuild.label = timemixin.Label
+	sbuild := &SyllabiSelect{SyllabiQuery: _q}
+	sbuild.label = syllabi.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a TimeMixinSelect configured with the given aggregations.
-func (_q *TimeMixinQuery) Aggregate(fns ...AggregateFunc) *TimeMixinSelect {
+// Aggregate returns a SyllabiSelect configured with the given aggregations.
+func (_q *SyllabiQuery) Aggregate(fns ...AggregateFunc) *SyllabiSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *TimeMixinQuery) prepareQuery(ctx context.Context) error {
+func (_q *SyllabiQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -316,7 +352,7 @@ func (_q *TimeMixinQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !timemixin.ValidColumn(f) {
+		if !syllabi.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -330,17 +366,21 @@ func (_q *TimeMixinQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *TimeMixinQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*TimeMixin, error) {
+func (_q *SyllabiQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Syllabi, error) {
 	var (
-		nodes = []*TimeMixin{}
-		_spec = _q.querySpec()
+		nodes       = []*Syllabi{}
+		_spec       = _q.querySpec()
+		loadedTypes = [1]bool{
+			_q.withVersion != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*TimeMixin).scanValues(nil, columns)
+		return (*Syllabi).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &TimeMixin{config: _q.config}
+		node := &Syllabi{config: _q.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,10 +392,46 @@ func (_q *TimeMixinQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ti
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withVersion; query != nil {
+		if err := _q.loadVersion(ctx, query, nodes, nil,
+			func(n *Syllabi, e *CourseVersions) { n.Edges.Version = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
-func (_q *TimeMixinQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *SyllabiQuery) loadVersion(ctx context.Context, query *CourseVersionsQuery, nodes []*Syllabi, init func(*Syllabi), assign func(*Syllabi, *CourseVersions)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Syllabi)
+	for i := range nodes {
+		fk := nodes[i].VersionID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(courseversions.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "version_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+
+func (_q *SyllabiQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -364,8 +440,8 @@ func (_q *TimeMixinQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *TimeMixinQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(timemixin.Table, timemixin.Columns, sqlgraph.NewFieldSpec(timemixin.FieldID, field.TypeInt))
+func (_q *SyllabiQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(syllabi.Table, syllabi.Columns, sqlgraph.NewFieldSpec(syllabi.FieldID, field.TypeString))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -374,11 +450,14 @@ func (_q *TimeMixinQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, timemixin.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, syllabi.FieldID)
 		for i := range fields {
-			if fields[i] != timemixin.FieldID {
+			if fields[i] != syllabi.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withVersion != nil {
+			_spec.Node.AddColumnOnce(syllabi.FieldVersionID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {
@@ -404,12 +483,12 @@ func (_q *TimeMixinQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *TimeMixinQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *SyllabiQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(timemixin.Table)
+	t1 := builder.Table(syllabi.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = timemixin.Columns
+		columns = syllabi.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -436,28 +515,28 @@ func (_q *TimeMixinQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// TimeMixinGroupBy is the group-by builder for TimeMixin entities.
-type TimeMixinGroupBy struct {
+// SyllabiGroupBy is the group-by builder for Syllabi entities.
+type SyllabiGroupBy struct {
 	selector
-	build *TimeMixinQuery
+	build *SyllabiQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *TimeMixinGroupBy) Aggregate(fns ...AggregateFunc) *TimeMixinGroupBy {
+func (_g *SyllabiGroupBy) Aggregate(fns ...AggregateFunc) *SyllabiGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *TimeMixinGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *SyllabiGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*TimeMixinQuery, *TimeMixinGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*SyllabiQuery, *SyllabiGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *TimeMixinGroupBy) sqlScan(ctx context.Context, root *TimeMixinQuery, v any) error {
+func (_g *SyllabiGroupBy) sqlScan(ctx context.Context, root *SyllabiQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -484,28 +563,28 @@ func (_g *TimeMixinGroupBy) sqlScan(ctx context.Context, root *TimeMixinQuery, v
 	return sql.ScanSlice(rows, v)
 }
 
-// TimeMixinSelect is the builder for selecting fields of TimeMixin entities.
-type TimeMixinSelect struct {
-	*TimeMixinQuery
+// SyllabiSelect is the builder for selecting fields of Syllabi entities.
+type SyllabiSelect struct {
+	*SyllabiQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *TimeMixinSelect) Aggregate(fns ...AggregateFunc) *TimeMixinSelect {
+func (_s *SyllabiSelect) Aggregate(fns ...AggregateFunc) *SyllabiSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *TimeMixinSelect) Scan(ctx context.Context, v any) error {
+func (_s *SyllabiSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*TimeMixinQuery, *TimeMixinSelect](ctx, _s.TimeMixinQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*SyllabiQuery, *SyllabiSelect](ctx, _s.SyllabiQuery, _s, _s.inters, v)
 }
 
-func (_s *TimeMixinSelect) sqlScan(ctx context.Context, root *TimeMixinQuery, v any) error {
+func (_s *SyllabiSelect) sqlScan(ctx context.Context, root *SyllabiQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

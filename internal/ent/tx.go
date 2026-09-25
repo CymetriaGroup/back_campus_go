@@ -14,16 +14,18 @@ type Tx struct {
 	config
 	// CourseCategories is the client for interacting with the CourseCategories builders.
 	CourseCategories *CourseCategoriesClient
+	// CourseModules is the client for interacting with the CourseModules builders.
+	CourseModules *CourseModulesClient
 	// CourseTemplates is the client for interacting with the CourseTemplates builders.
 	CourseTemplates *CourseTemplatesClient
-	// TenantMixin is the client for interacting with the TenantMixin builders.
-	TenantMixin *TenantMixinClient
+	// CourseVersions is the client for interacting with the CourseVersions builders.
+	CourseVersions *CourseVersionsClient
+	// Syllabi is the client for interacting with the Syllabi builders.
+	Syllabi *SyllabiClient
 	// TenantSettings is the client for interacting with the TenantSettings builders.
 	TenantSettings *TenantSettingsClient
 	// Tenants is the client for interacting with the Tenants builders.
 	Tenants *TenantsClient
-	// TimeMixin is the client for interacting with the TimeMixin builders.
-	TimeMixin *TimeMixinClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -158,11 +160,12 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.CourseCategories = NewCourseCategoriesClient(tx.config)
+	tx.CourseModules = NewCourseModulesClient(tx.config)
 	tx.CourseTemplates = NewCourseTemplatesClient(tx.config)
-	tx.TenantMixin = NewTenantMixinClient(tx.config)
+	tx.CourseVersions = NewCourseVersionsClient(tx.config)
+	tx.Syllabi = NewSyllabiClient(tx.config)
 	tx.TenantSettings = NewTenantSettingsClient(tx.config)
 	tx.Tenants = NewTenantsClient(tx.config)
-	tx.TimeMixin = NewTimeMixinClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

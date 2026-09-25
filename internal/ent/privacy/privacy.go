@@ -134,6 +134,30 @@ func (f CourseCategoriesMutationRuleFunc) EvalMutation(ctx context.Context, m en
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CourseCategoriesMutation", m)
 }
 
+// The CourseModulesQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type CourseModulesQueryRuleFunc func(context.Context, *ent.CourseModulesQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f CourseModulesQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CourseModulesQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.CourseModulesQuery", q)
+}
+
+// The CourseModulesMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type CourseModulesMutationRuleFunc func(context.Context, *ent.CourseModulesMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f CourseModulesMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.CourseModulesMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CourseModulesMutation", m)
+}
+
 // The CourseTemplatesQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type CourseTemplatesQueryRuleFunc func(context.Context, *ent.CourseTemplatesQuery) error
@@ -158,28 +182,52 @@ func (f CourseTemplatesMutationRuleFunc) EvalMutation(ctx context.Context, m ent
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CourseTemplatesMutation", m)
 }
 
-// The TenantMixinQueryRuleFunc type is an adapter to allow the use of ordinary
+// The CourseVersionsQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
-type TenantMixinQueryRuleFunc func(context.Context, *ent.TenantMixinQuery) error
+type CourseVersionsQueryRuleFunc func(context.Context, *ent.CourseVersionsQuery) error
 
 // EvalQuery return f(ctx, q).
-func (f TenantMixinQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
-	if q, ok := q.(*ent.TenantMixinQuery); ok {
+func (f CourseVersionsQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CourseVersionsQuery); ok {
 		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected query type %T, expect *ent.TenantMixinQuery", q)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.CourseVersionsQuery", q)
 }
 
-// The TenantMixinMutationRuleFunc type is an adapter to allow the use of ordinary
+// The CourseVersionsMutationRuleFunc type is an adapter to allow the use of ordinary
 // functions as a mutation rule.
-type TenantMixinMutationRuleFunc func(context.Context, *ent.TenantMixinMutation) error
+type CourseVersionsMutationRuleFunc func(context.Context, *ent.CourseVersionsMutation) error
 
 // EvalMutation calls f(ctx, m).
-func (f TenantMixinMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
-	if m, ok := m.(*ent.TenantMixinMutation); ok {
+func (f CourseVersionsMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.CourseVersionsMutation); ok {
 		return f(ctx, m)
 	}
-	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.TenantMixinMutation", m)
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CourseVersionsMutation", m)
+}
+
+// The SyllabiQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type SyllabiQueryRuleFunc func(context.Context, *ent.SyllabiQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f SyllabiQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.SyllabiQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.SyllabiQuery", q)
+}
+
+// The SyllabiMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type SyllabiMutationRuleFunc func(context.Context, *ent.SyllabiMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f SyllabiMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.SyllabiMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.SyllabiMutation", m)
 }
 
 // The TenantSettingsQueryRuleFunc type is an adapter to allow the use of ordinary
@@ -228,30 +276,6 @@ func (f TenantsMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutatio
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.TenantsMutation", m)
-}
-
-// The TimeMixinQueryRuleFunc type is an adapter to allow the use of ordinary
-// functions as a query rule.
-type TimeMixinQueryRuleFunc func(context.Context, *ent.TimeMixinQuery) error
-
-// EvalQuery return f(ctx, q).
-func (f TimeMixinQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
-	if q, ok := q.(*ent.TimeMixinQuery); ok {
-		return f(ctx, q)
-	}
-	return Denyf("ent/privacy: unexpected query type %T, expect *ent.TimeMixinQuery", q)
-}
-
-// The TimeMixinMutationRuleFunc type is an adapter to allow the use of ordinary
-// functions as a mutation rule.
-type TimeMixinMutationRuleFunc func(context.Context, *ent.TimeMixinMutation) error
-
-// EvalMutation calls f(ctx, m).
-func (f TimeMixinMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
-	if m, ok := m.(*ent.TimeMixinMutation); ok {
-		return f(ctx, m)
-	}
-	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.TimeMixinMutation", m)
 }
 
 // The UserQueryRuleFunc type is an adapter to allow the use of ordinary

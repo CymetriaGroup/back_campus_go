@@ -154,7 +154,7 @@ func (_c *TenantsCreate) ExecX(ctx context.Context) {
 // defaults sets the default values of the builder before save.
 func (_c *TenantsCreate) defaults() {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
-		v := tenants.DefaultCreatedAt
+		v := tenants.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {

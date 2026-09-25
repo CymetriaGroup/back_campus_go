@@ -20,6 +20,18 @@ func (f CourseCategoriesFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CourseCategoriesMutation", m)
 }
 
+// The CourseModulesFunc type is an adapter to allow the use of ordinary
+// function as CourseModules mutator.
+type CourseModulesFunc func(context.Context, *ent.CourseModulesMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CourseModulesFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CourseModulesMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CourseModulesMutation", m)
+}
+
 // The CourseTemplatesFunc type is an adapter to allow the use of ordinary
 // function as CourseTemplates mutator.
 type CourseTemplatesFunc func(context.Context, *ent.CourseTemplatesMutation) (ent.Value, error)
@@ -32,16 +44,28 @@ func (f CourseTemplatesFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CourseTemplatesMutation", m)
 }
 
-// The TenantMixinFunc type is an adapter to allow the use of ordinary
-// function as TenantMixin mutator.
-type TenantMixinFunc func(context.Context, *ent.TenantMixinMutation) (ent.Value, error)
+// The CourseVersionsFunc type is an adapter to allow the use of ordinary
+// function as CourseVersions mutator.
+type CourseVersionsFunc func(context.Context, *ent.CourseVersionsMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f TenantMixinFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.TenantMixinMutation); ok {
+func (f CourseVersionsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CourseVersionsMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TenantMixinMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CourseVersionsMutation", m)
+}
+
+// The SyllabiFunc type is an adapter to allow the use of ordinary
+// function as Syllabi mutator.
+type SyllabiFunc func(context.Context, *ent.SyllabiMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SyllabiFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SyllabiMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SyllabiMutation", m)
 }
 
 // The TenantSettingsFunc type is an adapter to allow the use of ordinary
@@ -66,18 +90,6 @@ func (f TenantsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TenantsMutation", m)
-}
-
-// The TimeMixinFunc type is an adapter to allow the use of ordinary
-// function as TimeMixin mutator.
-type TimeMixinFunc func(context.Context, *ent.TimeMixinMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f TimeMixinFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.TimeMixinMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TimeMixinMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

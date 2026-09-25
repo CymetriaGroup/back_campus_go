@@ -12,11 +12,12 @@ import (
 	"hexagonal-go-backend/internal/ent/migrate"
 
 	"hexagonal-go-backend/internal/ent/coursecategories"
+	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/coursetemplates"
-	"hexagonal-go-backend/internal/ent/tenantmixin"
+	"hexagonal-go-backend/internal/ent/courseversions"
+	"hexagonal-go-backend/internal/ent/syllabi"
 	"hexagonal-go-backend/internal/ent/tenants"
 	"hexagonal-go-backend/internal/ent/tenantsettings"
-	"hexagonal-go-backend/internal/ent/timemixin"
 	"hexagonal-go-backend/internal/ent/user"
 
 	"entgo.io/ent"
@@ -32,16 +33,18 @@ type Client struct {
 	Schema *migrate.Schema
 	// CourseCategories is the client for interacting with the CourseCategories builders.
 	CourseCategories *CourseCategoriesClient
+	// CourseModules is the client for interacting with the CourseModules builders.
+	CourseModules *CourseModulesClient
 	// CourseTemplates is the client for interacting with the CourseTemplates builders.
 	CourseTemplates *CourseTemplatesClient
-	// TenantMixin is the client for interacting with the TenantMixin builders.
-	TenantMixin *TenantMixinClient
+	// CourseVersions is the client for interacting with the CourseVersions builders.
+	CourseVersions *CourseVersionsClient
+	// Syllabi is the client for interacting with the Syllabi builders.
+	Syllabi *SyllabiClient
 	// TenantSettings is the client for interacting with the TenantSettings builders.
 	TenantSettings *TenantSettingsClient
 	// Tenants is the client for interacting with the Tenants builders.
 	Tenants *TenantsClient
-	// TimeMixin is the client for interacting with the TimeMixin builders.
-	TimeMixin *TimeMixinClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -56,11 +59,12 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.CourseCategories = NewCourseCategoriesClient(c.config)
+	c.CourseModules = NewCourseModulesClient(c.config)
 	c.CourseTemplates = NewCourseTemplatesClient(c.config)
-	c.TenantMixin = NewTenantMixinClient(c.config)
+	c.CourseVersions = NewCourseVersionsClient(c.config)
+	c.Syllabi = NewSyllabiClient(c.config)
 	c.TenantSettings = NewTenantSettingsClient(c.config)
 	c.Tenants = NewTenantsClient(c.config)
-	c.TimeMixin = NewTimeMixinClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -155,11 +159,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:              ctx,
 		config:           cfg,
 		CourseCategories: NewCourseCategoriesClient(cfg),
+		CourseModules:    NewCourseModulesClient(cfg),
 		CourseTemplates:  NewCourseTemplatesClient(cfg),
-		TenantMixin:      NewTenantMixinClient(cfg),
+		CourseVersions:   NewCourseVersionsClient(cfg),
+		Syllabi:          NewSyllabiClient(cfg),
 		TenantSettings:   NewTenantSettingsClient(cfg),
 		Tenants:          NewTenantsClient(cfg),
-		TimeMixin:        NewTimeMixinClient(cfg),
 		User:             NewUserClient(cfg),
 	}, nil
 }
@@ -181,11 +186,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:              ctx,
 		config:           cfg,
 		CourseCategories: NewCourseCategoriesClient(cfg),
+		CourseModules:    NewCourseModulesClient(cfg),
 		CourseTemplates:  NewCourseTemplatesClient(cfg),
-		TenantMixin:      NewTenantMixinClient(cfg),
+		CourseVersions:   NewCourseVersionsClient(cfg),
+		Syllabi:          NewSyllabiClient(cfg),
 		TenantSettings:   NewTenantSettingsClient(cfg),
 		Tenants:          NewTenantsClient(cfg),
-		TimeMixin:        NewTimeMixinClient(cfg),
 		User:             NewUserClient(cfg),
 	}, nil
 }
@@ -216,8 +222,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.CourseCategories, c.CourseTemplates, c.TenantMixin, c.TenantSettings,
-		c.Tenants, c.TimeMixin, c.User,
+		c.CourseCategories, c.CourseModules, c.CourseTemplates, c.CourseVersions,
+		c.Syllabi, c.TenantSettings, c.Tenants, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -227,8 +233,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.CourseCategories, c.CourseTemplates, c.TenantMixin, c.TenantSettings,
-		c.Tenants, c.TimeMixin, c.User,
+		c.CourseCategories, c.CourseModules, c.CourseTemplates, c.CourseVersions,
+		c.Syllabi, c.TenantSettings, c.Tenants, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -239,16 +245,18 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *CourseCategoriesMutation:
 		return c.CourseCategories.mutate(ctx, m)
+	case *CourseModulesMutation:
+		return c.CourseModules.mutate(ctx, m)
 	case *CourseTemplatesMutation:
 		return c.CourseTemplates.mutate(ctx, m)
-	case *TenantMixinMutation:
-		return c.TenantMixin.mutate(ctx, m)
+	case *CourseVersionsMutation:
+		return c.CourseVersions.mutate(ctx, m)
+	case *SyllabiMutation:
+		return c.Syllabi.mutate(ctx, m)
 	case *TenantSettingsMutation:
 		return c.TenantSettings.mutate(ctx, m)
 	case *TenantsMutation:
 		return c.Tenants.mutate(ctx, m)
-	case *TimeMixinMutation:
-		return c.TimeMixin.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -389,6 +397,139 @@ func (c *CourseCategoriesClient) mutate(ctx context.Context, m *CourseCategories
 	}
 }
 
+// CourseModulesClient is a client for the CourseModules schema.
+type CourseModulesClient struct {
+	config
+}
+
+// NewCourseModulesClient returns a client for the CourseModules from the given config.
+func NewCourseModulesClient(c config) *CourseModulesClient {
+	return &CourseModulesClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `coursemodules.Hooks(f(g(h())))`.
+func (c *CourseModulesClient) Use(hooks ...Hook) {
+	c.hooks.CourseModules = append(c.hooks.CourseModules, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `coursemodules.Intercept(f(g(h())))`.
+func (c *CourseModulesClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CourseModules = append(c.inters.CourseModules, interceptors...)
+}
+
+// Create returns a builder for creating a CourseModules entity.
+func (c *CourseModulesClient) Create() *CourseModulesCreate {
+	mutation := newCourseModulesMutation(c.config, OpCreate)
+	return &CourseModulesCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CourseModules entities.
+func (c *CourseModulesClient) CreateBulk(builders ...*CourseModulesCreate) *CourseModulesCreateBulk {
+	return &CourseModulesCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CourseModulesClient) MapCreateBulk(slice any, setFunc func(*CourseModulesCreate, int)) *CourseModulesCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CourseModulesCreateBulk{err: fmt.Errorf("calling to CourseModulesClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CourseModulesCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CourseModulesCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CourseModules.
+func (c *CourseModulesClient) Update() *CourseModulesUpdate {
+	mutation := newCourseModulesMutation(c.config, OpUpdate)
+	return &CourseModulesUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CourseModulesClient) UpdateOne(_m *CourseModules) *CourseModulesUpdateOne {
+	mutation := newCourseModulesMutation(c.config, OpUpdateOne, withCourseModules(_m))
+	return &CourseModulesUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CourseModulesClient) UpdateOneID(id string) *CourseModulesUpdateOne {
+	mutation := newCourseModulesMutation(c.config, OpUpdateOne, withCourseModulesID(id))
+	return &CourseModulesUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CourseModules.
+func (c *CourseModulesClient) Delete() *CourseModulesDelete {
+	mutation := newCourseModulesMutation(c.config, OpDelete)
+	return &CourseModulesDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CourseModulesClient) DeleteOne(_m *CourseModules) *CourseModulesDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CourseModulesClient) DeleteOneID(id string) *CourseModulesDeleteOne {
+	builder := c.Delete().Where(coursemodules.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CourseModulesDeleteOne{builder}
+}
+
+// Query returns a query builder for CourseModules.
+func (c *CourseModulesClient) Query() *CourseModulesQuery {
+	return &CourseModulesQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCourseModules},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CourseModules entity by its id.
+func (c *CourseModulesClient) Get(ctx context.Context, id string) (*CourseModules, error) {
+	return c.Query().Where(coursemodules.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CourseModulesClient) GetX(ctx context.Context, id string) *CourseModules {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *CourseModulesClient) Hooks() []Hook {
+	return c.hooks.CourseModules
+}
+
+// Interceptors returns the client interceptors.
+func (c *CourseModulesClient) Interceptors() []Interceptor {
+	return c.inters.CourseModules
+}
+
+func (c *CourseModulesClient) mutate(ctx context.Context, m *CourseModulesMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CourseModulesCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CourseModulesUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CourseModulesUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CourseModulesDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown CourseModules mutation op: %q", m.Op())
+	}
+}
+
 // CourseTemplatesClient is a client for the CourseTemplates schema.
 type CourseTemplatesClient struct {
 	config
@@ -497,6 +638,22 @@ func (c *CourseTemplatesClient) GetX(ctx context.Context, id string) *CourseTemp
 	return obj
 }
 
+// QueryVersions queries the versions edge of a CourseTemplates.
+func (c *CourseTemplatesClient) QueryVersions(_m *CourseTemplates) *CourseVersionsQuery {
+	query := (&CourseVersionsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(coursetemplates.Table, coursetemplates.FieldID, id),
+			sqlgraph.To(courseversions.Table, courseversions.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, coursetemplates.VersionsTable, coursetemplates.VersionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CourseTemplatesClient) Hooks() []Hook {
 	return c.hooks.CourseTemplates
@@ -522,107 +679,107 @@ func (c *CourseTemplatesClient) mutate(ctx context.Context, m *CourseTemplatesMu
 	}
 }
 
-// TenantMixinClient is a client for the TenantMixin schema.
-type TenantMixinClient struct {
+// CourseVersionsClient is a client for the CourseVersions schema.
+type CourseVersionsClient struct {
 	config
 }
 
-// NewTenantMixinClient returns a client for the TenantMixin from the given config.
-func NewTenantMixinClient(c config) *TenantMixinClient {
-	return &TenantMixinClient{config: c}
+// NewCourseVersionsClient returns a client for the CourseVersions from the given config.
+func NewCourseVersionsClient(c config) *CourseVersionsClient {
+	return &CourseVersionsClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `tenantmixin.Hooks(f(g(h())))`.
-func (c *TenantMixinClient) Use(hooks ...Hook) {
-	c.hooks.TenantMixin = append(c.hooks.TenantMixin, hooks...)
+// A call to `Use(f, g, h)` equals to `courseversions.Hooks(f(g(h())))`.
+func (c *CourseVersionsClient) Use(hooks ...Hook) {
+	c.hooks.CourseVersions = append(c.hooks.CourseVersions, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `tenantmixin.Intercept(f(g(h())))`.
-func (c *TenantMixinClient) Intercept(interceptors ...Interceptor) {
-	c.inters.TenantMixin = append(c.inters.TenantMixin, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `courseversions.Intercept(f(g(h())))`.
+func (c *CourseVersionsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CourseVersions = append(c.inters.CourseVersions, interceptors...)
 }
 
-// Create returns a builder for creating a TenantMixin entity.
-func (c *TenantMixinClient) Create() *TenantMixinCreate {
-	mutation := newTenantMixinMutation(c.config, OpCreate)
-	return &TenantMixinCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a CourseVersions entity.
+func (c *CourseVersionsClient) Create() *CourseVersionsCreate {
+	mutation := newCourseVersionsMutation(c.config, OpCreate)
+	return &CourseVersionsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of TenantMixin entities.
-func (c *TenantMixinClient) CreateBulk(builders ...*TenantMixinCreate) *TenantMixinCreateBulk {
-	return &TenantMixinCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of CourseVersions entities.
+func (c *CourseVersionsClient) CreateBulk(builders ...*CourseVersionsCreate) *CourseVersionsCreateBulk {
+	return &CourseVersionsCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *TenantMixinClient) MapCreateBulk(slice any, setFunc func(*TenantMixinCreate, int)) *TenantMixinCreateBulk {
+func (c *CourseVersionsClient) MapCreateBulk(slice any, setFunc func(*CourseVersionsCreate, int)) *CourseVersionsCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &TenantMixinCreateBulk{err: fmt.Errorf("calling to TenantMixinClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &CourseVersionsCreateBulk{err: fmt.Errorf("calling to CourseVersionsClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*TenantMixinCreate, rv.Len())
+	builders := make([]*CourseVersionsCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &TenantMixinCreateBulk{config: c.config, builders: builders}
+	return &CourseVersionsCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for TenantMixin.
-func (c *TenantMixinClient) Update() *TenantMixinUpdate {
-	mutation := newTenantMixinMutation(c.config, OpUpdate)
-	return &TenantMixinUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for CourseVersions.
+func (c *CourseVersionsClient) Update() *CourseVersionsUpdate {
+	mutation := newCourseVersionsMutation(c.config, OpUpdate)
+	return &CourseVersionsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *TenantMixinClient) UpdateOne(_m *TenantMixin) *TenantMixinUpdateOne {
-	mutation := newTenantMixinMutation(c.config, OpUpdateOne, withTenantMixin(_m))
-	return &TenantMixinUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *CourseVersionsClient) UpdateOne(_m *CourseVersions) *CourseVersionsUpdateOne {
+	mutation := newCourseVersionsMutation(c.config, OpUpdateOne, withCourseVersions(_m))
+	return &CourseVersionsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *TenantMixinClient) UpdateOneID(id int) *TenantMixinUpdateOne {
-	mutation := newTenantMixinMutation(c.config, OpUpdateOne, withTenantMixinID(id))
-	return &TenantMixinUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *CourseVersionsClient) UpdateOneID(id string) *CourseVersionsUpdateOne {
+	mutation := newCourseVersionsMutation(c.config, OpUpdateOne, withCourseVersionsID(id))
+	return &CourseVersionsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for TenantMixin.
-func (c *TenantMixinClient) Delete() *TenantMixinDelete {
-	mutation := newTenantMixinMutation(c.config, OpDelete)
-	return &TenantMixinDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for CourseVersions.
+func (c *CourseVersionsClient) Delete() *CourseVersionsDelete {
+	mutation := newCourseVersionsMutation(c.config, OpDelete)
+	return &CourseVersionsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *TenantMixinClient) DeleteOne(_m *TenantMixin) *TenantMixinDeleteOne {
+func (c *CourseVersionsClient) DeleteOne(_m *CourseVersions) *CourseVersionsDeleteOne {
 	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *TenantMixinClient) DeleteOneID(id int) *TenantMixinDeleteOne {
-	builder := c.Delete().Where(tenantmixin.ID(id))
+func (c *CourseVersionsClient) DeleteOneID(id string) *CourseVersionsDeleteOne {
+	builder := c.Delete().Where(courseversions.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &TenantMixinDeleteOne{builder}
+	return &CourseVersionsDeleteOne{builder}
 }
 
-// Query returns a query builder for TenantMixin.
-func (c *TenantMixinClient) Query() *TenantMixinQuery {
-	return &TenantMixinQuery{
+// Query returns a query builder for CourseVersions.
+func (c *CourseVersionsClient) Query() *CourseVersionsQuery {
+	return &CourseVersionsQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeTenantMixin},
+		ctx:    &QueryContext{Type: TypeCourseVersions},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a TenantMixin entity by its id.
-func (c *TenantMixinClient) Get(ctx context.Context, id int) (*TenantMixin, error) {
-	return c.Query().Where(tenantmixin.ID(id)).Only(ctx)
+// Get returns a CourseVersions entity by its id.
+func (c *CourseVersionsClient) Get(ctx context.Context, id string) (*CourseVersions, error) {
+	return c.Query().Where(courseversions.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *TenantMixinClient) GetX(ctx context.Context, id int) *TenantMixin {
+func (c *CourseVersionsClient) GetX(ctx context.Context, id string) *CourseVersions {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -630,28 +787,209 @@ func (c *TenantMixinClient) GetX(ctx context.Context, id int) *TenantMixin {
 	return obj
 }
 
+// QueryTemplate queries the template edge of a CourseVersions.
+func (c *CourseVersionsClient) QueryTemplate(_m *CourseVersions) *CourseTemplatesQuery {
+	query := (&CourseTemplatesClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(courseversions.Table, courseversions.FieldID, id),
+			sqlgraph.To(coursetemplates.Table, coursetemplates.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, courseversions.TemplateTable, courseversions.TemplateColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySyllabi queries the syllabi edge of a CourseVersions.
+func (c *CourseVersionsClient) QuerySyllabi(_m *CourseVersions) *SyllabiQuery {
+	query := (&SyllabiClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(courseversions.Table, courseversions.FieldID, id),
+			sqlgraph.To(syllabi.Table, syllabi.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, courseversions.SyllabiTable, courseversions.SyllabiColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
-func (c *TenantMixinClient) Hooks() []Hook {
-	return c.hooks.TenantMixin
+func (c *CourseVersionsClient) Hooks() []Hook {
+	return c.hooks.CourseVersions
 }
 
 // Interceptors returns the client interceptors.
-func (c *TenantMixinClient) Interceptors() []Interceptor {
-	return c.inters.TenantMixin
+func (c *CourseVersionsClient) Interceptors() []Interceptor {
+	return c.inters.CourseVersions
 }
 
-func (c *TenantMixinClient) mutate(ctx context.Context, m *TenantMixinMutation) (Value, error) {
+func (c *CourseVersionsClient) mutate(ctx context.Context, m *CourseVersionsMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&TenantMixinCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&CourseVersionsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&TenantMixinUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&CourseVersionsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&TenantMixinUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&CourseVersionsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&TenantMixinDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&CourseVersionsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown TenantMixin mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown CourseVersions mutation op: %q", m.Op())
+	}
+}
+
+// SyllabiClient is a client for the Syllabi schema.
+type SyllabiClient struct {
+	config
+}
+
+// NewSyllabiClient returns a client for the Syllabi from the given config.
+func NewSyllabiClient(c config) *SyllabiClient {
+	return &SyllabiClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `syllabi.Hooks(f(g(h())))`.
+func (c *SyllabiClient) Use(hooks ...Hook) {
+	c.hooks.Syllabi = append(c.hooks.Syllabi, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `syllabi.Intercept(f(g(h())))`.
+func (c *SyllabiClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Syllabi = append(c.inters.Syllabi, interceptors...)
+}
+
+// Create returns a builder for creating a Syllabi entity.
+func (c *SyllabiClient) Create() *SyllabiCreate {
+	mutation := newSyllabiMutation(c.config, OpCreate)
+	return &SyllabiCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Syllabi entities.
+func (c *SyllabiClient) CreateBulk(builders ...*SyllabiCreate) *SyllabiCreateBulk {
+	return &SyllabiCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SyllabiClient) MapCreateBulk(slice any, setFunc func(*SyllabiCreate, int)) *SyllabiCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SyllabiCreateBulk{err: fmt.Errorf("calling to SyllabiClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SyllabiCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SyllabiCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Syllabi.
+func (c *SyllabiClient) Update() *SyllabiUpdate {
+	mutation := newSyllabiMutation(c.config, OpUpdate)
+	return &SyllabiUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SyllabiClient) UpdateOne(_m *Syllabi) *SyllabiUpdateOne {
+	mutation := newSyllabiMutation(c.config, OpUpdateOne, withSyllabi(_m))
+	return &SyllabiUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SyllabiClient) UpdateOneID(id string) *SyllabiUpdateOne {
+	mutation := newSyllabiMutation(c.config, OpUpdateOne, withSyllabiID(id))
+	return &SyllabiUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Syllabi.
+func (c *SyllabiClient) Delete() *SyllabiDelete {
+	mutation := newSyllabiMutation(c.config, OpDelete)
+	return &SyllabiDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SyllabiClient) DeleteOne(_m *Syllabi) *SyllabiDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SyllabiClient) DeleteOneID(id string) *SyllabiDeleteOne {
+	builder := c.Delete().Where(syllabi.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SyllabiDeleteOne{builder}
+}
+
+// Query returns a query builder for Syllabi.
+func (c *SyllabiClient) Query() *SyllabiQuery {
+	return &SyllabiQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSyllabi},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Syllabi entity by its id.
+func (c *SyllabiClient) Get(ctx context.Context, id string) (*Syllabi, error) {
+	return c.Query().Where(syllabi.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SyllabiClient) GetX(ctx context.Context, id string) *Syllabi {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryVersion queries the version edge of a Syllabi.
+func (c *SyllabiClient) QueryVersion(_m *Syllabi) *CourseVersionsQuery {
+	query := (&CourseVersionsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(syllabi.Table, syllabi.FieldID, id),
+			sqlgraph.To(courseversions.Table, courseversions.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, syllabi.VersionTable, syllabi.VersionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SyllabiClient) Hooks() []Hook {
+	return c.hooks.Syllabi
+}
+
+// Interceptors returns the client interceptors.
+func (c *SyllabiClient) Interceptors() []Interceptor {
+	return c.inters.Syllabi
+}
+
+func (c *SyllabiClient) mutate(ctx context.Context, m *SyllabiMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SyllabiCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SyllabiUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SyllabiUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SyllabiDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Syllabi mutation op: %q", m.Op())
 	}
 }
 
@@ -953,139 +1291,6 @@ func (c *TenantsClient) mutate(ctx context.Context, m *TenantsMutation) (Value, 
 	}
 }
 
-// TimeMixinClient is a client for the TimeMixin schema.
-type TimeMixinClient struct {
-	config
-}
-
-// NewTimeMixinClient returns a client for the TimeMixin from the given config.
-func NewTimeMixinClient(c config) *TimeMixinClient {
-	return &TimeMixinClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `timemixin.Hooks(f(g(h())))`.
-func (c *TimeMixinClient) Use(hooks ...Hook) {
-	c.hooks.TimeMixin = append(c.hooks.TimeMixin, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `timemixin.Intercept(f(g(h())))`.
-func (c *TimeMixinClient) Intercept(interceptors ...Interceptor) {
-	c.inters.TimeMixin = append(c.inters.TimeMixin, interceptors...)
-}
-
-// Create returns a builder for creating a TimeMixin entity.
-func (c *TimeMixinClient) Create() *TimeMixinCreate {
-	mutation := newTimeMixinMutation(c.config, OpCreate)
-	return &TimeMixinCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of TimeMixin entities.
-func (c *TimeMixinClient) CreateBulk(builders ...*TimeMixinCreate) *TimeMixinCreateBulk {
-	return &TimeMixinCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *TimeMixinClient) MapCreateBulk(slice any, setFunc func(*TimeMixinCreate, int)) *TimeMixinCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &TimeMixinCreateBulk{err: fmt.Errorf("calling to TimeMixinClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*TimeMixinCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &TimeMixinCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for TimeMixin.
-func (c *TimeMixinClient) Update() *TimeMixinUpdate {
-	mutation := newTimeMixinMutation(c.config, OpUpdate)
-	return &TimeMixinUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *TimeMixinClient) UpdateOne(_m *TimeMixin) *TimeMixinUpdateOne {
-	mutation := newTimeMixinMutation(c.config, OpUpdateOne, withTimeMixin(_m))
-	return &TimeMixinUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *TimeMixinClient) UpdateOneID(id int) *TimeMixinUpdateOne {
-	mutation := newTimeMixinMutation(c.config, OpUpdateOne, withTimeMixinID(id))
-	return &TimeMixinUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for TimeMixin.
-func (c *TimeMixinClient) Delete() *TimeMixinDelete {
-	mutation := newTimeMixinMutation(c.config, OpDelete)
-	return &TimeMixinDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *TimeMixinClient) DeleteOne(_m *TimeMixin) *TimeMixinDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *TimeMixinClient) DeleteOneID(id int) *TimeMixinDeleteOne {
-	builder := c.Delete().Where(timemixin.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &TimeMixinDeleteOne{builder}
-}
-
-// Query returns a query builder for TimeMixin.
-func (c *TimeMixinClient) Query() *TimeMixinQuery {
-	return &TimeMixinQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeTimeMixin},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a TimeMixin entity by its id.
-func (c *TimeMixinClient) Get(ctx context.Context, id int) (*TimeMixin, error) {
-	return c.Query().Where(timemixin.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *TimeMixinClient) GetX(ctx context.Context, id int) *TimeMixin {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *TimeMixinClient) Hooks() []Hook {
-	return c.hooks.TimeMixin
-}
-
-// Interceptors returns the client interceptors.
-func (c *TimeMixinClient) Interceptors() []Interceptor {
-	return c.inters.TimeMixin
-}
-
-func (c *TimeMixinClient) mutate(ctx context.Context, m *TimeMixinMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&TimeMixinCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&TimeMixinUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&TimeMixinUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&TimeMixinDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown TimeMixin mutation op: %q", m.Op())
-	}
-}
-
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -1222,11 +1427,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		CourseCategories, CourseTemplates, TenantMixin, TenantSettings, Tenants,
-		TimeMixin, User []ent.Hook
+		CourseCategories, CourseModules, CourseTemplates, CourseVersions, Syllabi,
+		TenantSettings, Tenants, User []ent.Hook
 	}
 	inters struct {
-		CourseCategories, CourseTemplates, TenantMixin, TenantSettings, Tenants,
-		TimeMixin, User []ent.Interceptor
+		CourseCategories, CourseModules, CourseTemplates, CourseVersions, Syllabi,
+		TenantSettings, Tenants, User []ent.Interceptor
 	}
 )

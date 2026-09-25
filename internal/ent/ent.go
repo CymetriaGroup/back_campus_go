@@ -7,11 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"hexagonal-go-backend/internal/ent/coursecategories"
+	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/coursetemplates"
-	"hexagonal-go-backend/internal/ent/tenantmixin"
+	"hexagonal-go-backend/internal/ent/courseversions"
+	"hexagonal-go-backend/internal/ent/syllabi"
 	"hexagonal-go-backend/internal/ent/tenants"
 	"hexagonal-go-backend/internal/ent/tenantsettings"
-	"hexagonal-go-backend/internal/ent/timemixin"
 	"hexagonal-go-backend/internal/ent/user"
 	"reflect"
 	"sync"
@@ -80,11 +81,12 @@ func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			coursecategories.Table: coursecategories.ValidColumn,
+			coursemodules.Table:    coursemodules.ValidColumn,
 			coursetemplates.Table:  coursetemplates.ValidColumn,
-			tenantmixin.Table:      tenantmixin.ValidColumn,
+			courseversions.Table:   courseversions.ValidColumn,
+			syllabi.Table:          syllabi.ValidColumn,
 			tenantsettings.Table:   tenantsettings.ValidColumn,
 			tenants.Table:          tenants.ValidColumn,
-			timemixin.Table:        timemixin.ValidColumn,
 			user.Table:             user.ValidColumn,
 		})
 	})

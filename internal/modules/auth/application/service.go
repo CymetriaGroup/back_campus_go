@@ -7,6 +7,7 @@ import (
 	"hexagonal-go-backend/internal/modules/auth/domain"
 	users "hexagonal-go-backend/internal/modules/users/application"
 	userdomain "hexagonal-go-backend/internal/modules/users/domain"
+	"hexagonal-go-backend/internal/platform/identifier"
 )
 
 type authService struct {
@@ -56,7 +57,7 @@ func (s *authService) Logout(ctx context.Context, token string) error {
 func (s *authService) issue(ctx context.Context, user *userdomain.User) (TokenPair, error) {
 	now := time.Now().UTC()
 	accessExp, refreshExp := now.Add(s.accessTTL), now.Add(s.refreshTTL)
-	accessID, refreshID := newID()+"a", newID()+"r"
+	accessID, refreshID := identifier.New(), identifier.New()
 	accessToken, err := s.tokens.Generate(TokenClaims{Subject: user.ID, Role: user.Role, ExpiresAt: accessExp, TokenID: accessID})
 	if err != nil {
 		return TokenPair{}, err
@@ -70,5 +71,3 @@ func (s *authService) issue(ctx context.Context, user *userdomain.User) (TokenPa
 	}
 	return TokenPair{AccessToken: accessToken, RefreshToken: refreshToken, AccessExpiresAt: accessExp, RefreshExpiresAt: refreshExp}, nil
 }
-
-func newID() string { return time.Now().UTC().Format("20060102150405.000000000") }
