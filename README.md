@@ -40,7 +40,7 @@ La regla principal es:
 El dominio no debe conocer detalles relacionados con:
 
 * Gin;
-* GORM;
+* Ent;
 * PostgreSQL;
 * Redis;
 * JWT;
@@ -58,7 +58,7 @@ La aplicación se divide conceptualmente en cuatro áreas principales.
 ```text
 ┌───────────────────────────────────────┐
 │            Infrastructure             │
-│ Gin · GORM · PostgreSQL · Redis · JWT │
+│ Gin · Ent · PostgreSQL · Redis · JWT  │
 │ HTTP · Storage · Email · External API │
 ├───────────────────────────────────────┤
 │               Adapters                │
@@ -93,7 +93,7 @@ El dominio no debe contener:
 
 ```go
 json:"..."
-gorm:"..."
+ent/schema metadata
 binding:"..."
 ```
 
@@ -112,7 +112,7 @@ No:
 
 ```go
 type User struct {
-	ID    string `json:"id" gorm:"primaryKey"`
+	ID    string `json:"id"`
 	Email string `json:"email" binding:"required"`
 }
 ```
@@ -267,6 +267,8 @@ go-hexagonal-api/
 │       └── main.go
 │
 ├── internal/
+│   ├── ent/                 # Cliente generado; no editar manualmente
+│   │   └── schema/          # Schemas que sí se editan
 │   ├── modules/
 │   │   ├── users/
 │   │   │   ├── domain/
@@ -279,9 +281,8 @@ go-hexagonal-api/
 │   │   │   ├── infrastructure/
 │   │   │   │   ├── persistence/
 │   │   │   │   │   ├── memory/
-│   │   │   │   │   └── postgres/
-│   │   │   │   │       ├── models/
-│   │   │   │   │       ├── mappers/
+│   │   │   │   │   └── ent/
+│   │   │   │   │       ├── mapper.go
 │   │   │   │   │       └── user_repository.go
 │   │   │   │   ├── security/
 │   │   │   │   └── mail/
@@ -310,9 +311,8 @@ go-hexagonal-api/
 │       ├── logger/
 │       └── server/
 │
-├── migrations/
-│   ├── 000001_create_users.up.sql
-│   └── 000001_create_users.down.sql
+├── migrations/            # SQL versionado generado por Atlas
+│   └── atlas.sum
 │
 ├── docs/
 │   └── swagger/
@@ -340,7 +340,7 @@ go-hexagonal-api/
 
 ---
 
-## Generar un módulo
+## Generar módulos y schemas Ent
 
 Para crear la estructura hexagonal de un módulo sin preparar cada directorio manualmente:
 
@@ -348,7 +348,23 @@ Para crear la estructura hexagonal de un módulo sin preparar cada directorio ma
 make module MODULE=courses
 ```
 
-El nombre debe estar en `snake_case` y el comando no sobrescribe módulos existentes. Se generan las capas `domain`, `application`, `infrastructure` y `delivery/http/v1`, junto con archivos Go mínimos listos para completar.
+El nombre del módulo debe estar en `snake_case` y el comando no sobrescribe módulos existentes. Se generan las capas `domain`, `application`, `infrastructure` y `delivery/http/v1`, junto con archivos Go mínimos listos para completar.
+
+Para crear un nuevo schema de Ent:
+
+```bash
+make ent-schema NAME=Course
+```
+
+`NAME` debe usar `PascalCase`. Este comando crea `internal/ent/schema/course.go` y ejecuta automáticamente `make ent-generate` para actualizar el cliente tipado. Después debes editar el schema generado para definir sus campos, relaciones e índices.
+
+Cuando solo modifiques un schema existente, regenera el cliente con:
+
+```bash
+make ent-generate
+```
+
+Con `APP_ENV=development`, `make run` sincroniza automáticamente esos schemas con PostgreSQL mediante `Schema.Create`. En producción la aplicación no modifica el esquema.
 
 ---
 
@@ -359,12 +375,12 @@ El nombre debe estar en `snake_case` y el comando no sobrescribe módulos existe
 | Language            | Go                         |
 | HTTP                | Gin                        |
 | Database            | PostgreSQL                 |
-| ORM                 | GORM                       |
+| ORM                 | Ent                        |
 | Cache               | Redis                      |
 | Validation          | go-playground/validator    |
 | Authentication      | JWT                        |
 | Password hashing    | Argon2id o bcrypt          |
-| Migrations          | golang-migrate             |
+| Schema management   | Ent Schema                 |
 | Logging             | slog / logger estructurado |
 | Documentation       | OpenAPI / Swagger          |
 | Testing             | testing + testify          |
@@ -376,6 +392,10 @@ El nombre debe estar en `snake_case` y el comando no sobrescribe módulos existe
 | CI/CD               | GitHub Actions             |
 
 Las tecnologías de infraestructura pueden ser reemplazadas sin modificar el dominio.
+
+Los schemas de Ent viven en `internal/ent/schema`. Puedes crear uno con `make ent-schema NAME=Course`; después de modificarlo, regenera el cliente tipado con `make ent-generate`.
+
+Los schemas de Ent son la fuente de verdad. En desarrollo la aplicación ejecuta `client.Schema.Create(ctx)`; en producción se aplican migraciones versionadas generadas con Atlas.
 
 ---
 
@@ -417,12 +437,10 @@ APP_ENV=development
 APP_PORT=8080
 APP_NAME=go-hexagonal-api
 
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-DATABASE_USER=postgres
-DATABASE_PASSWORD=postgres
-DATABASE_NAME=app
-DATABASE_SSLMODE=disable
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/app?sslmode=disable
+DATABASE_MAX_OPEN_CONNS=25
+DATABASE_MAX_IDLE_CONNS=5
+DATABASE_CONN_MAX_LIFETIME=30m
 
 REDIS_HOST=localhost
 REDIS_PORT=6379
@@ -461,29 +479,43 @@ Los valores deben ajustarse según:
 
 ---
 
-# 🗃️ Migraciones
+# 🗃️ Esquema y migraciones
 
-Los cambios estructurales de base de datos deben manejarse mediante migraciones versionadas.
+Los schemas ubicados en `internal/ent/schema/` son la fuente de verdad. La estrategia depende de `APP_ENV`:
 
-Ejemplo:
+- `development`: la aplicación ejecuta `client.Schema.Create(ctx)` al arrancar y sincroniza automáticamente el esquema.
+- `production`: la aplicación nunca modifica el esquema; el despliegue debe aplicar previamente las migraciones versionadas de `migrations/`.
 
-```text
-migrations/
-├── 000001_create_users.up.sql
-├── 000001_create_users.down.sql
-├── 000002_create_roles.up.sql
-└── 000002_create_roles.down.sql
+Flujo de desarrollo:
+
+```bash
+# Editar internal/ent/schema/*.go y regenerar.
+make ent-generate
+make run
 ```
 
-En producción se recomienda evitar depender exclusivamente de `AutoMigrate`.
+Flujo para preparar producción:
 
-Las migraciones permiten:
+```bash
+# Generar una migración comparando los schemas Ent con el estado anterior.
+make migration-diff NAME=add_courses
 
-* versionar el esquema;
-* reproducir ambientes;
-* controlar despliegues;
-* realizar rollback;
-* auditar cambios.
+# Revisar los archivos SQL generados y versionarlos.
+
+# Consultar y aplicar migraciones usando DATABASE_URL de .env.
+make migrate-status
+make migrate-apply
+```
+
+Si la base ya había sido creada automáticamente por Ent antes de adoptar las migraciones versionadas, registra una única vez la migración inicial como baseline, usando el prefijo numérico del archivo:
+
+```bash
+make migrate-baseline VERSION=20260925003527
+```
+
+No uses `--allow-dirty`: intentaría ejecutar la migración inicial sobre tablas existentes. El baseline no ejecuta ese SQL; registra que la base ya se encuentra en esa versión. En bases de producción nuevas y vacías no se usa baseline, sino `make migrate-apply`.
+
+`migration-diff` usa Atlas y una base PostgreSQL temporal en Docker. Los cambios destructivos deben revisarse y probarse antes de aplicarlos. En producción, ejecuta `make migrate-apply` como paso de despliegue antes de iniciar la nueva versión de la API.
 
 ---
 
@@ -505,7 +537,7 @@ Registrar auditoría
 
 Si una operación falla, toda la transacción debe hacer rollback.
 
-El manejo transaccional debe abstraerse para evitar que los casos de uso dependan directamente de GORM.
+El manejo transaccional debe abstraerse para evitar que los casos de uso dependan directamente de Ent.
 
 ---
 
@@ -533,7 +565,7 @@ type UserResponse struct {
 }
 ```
 
-Nunca retornar directamente modelos GORM desde los handlers.
+Nunca retornar directamente entidades generadas por Ent desde los handlers.
 
 Evitar:
 
@@ -1422,8 +1454,11 @@ make run
 make build
 make test
 make lint
-make migrate-up
-make migrate-down
+make ent-generate
+make migration-diff NAME=add_courses
+make migrate-baseline VERSION=20260925003527
+make migrate-status
+make migrate-apply
 make docker-up
 make docker-down
 ```
@@ -1450,12 +1485,18 @@ build:
 
 ## 1. Requisitos
 
-* Go 1.27 o versión compatible declarada en `go.mod`
+* Go 1.26 o versión compatible declarada en `go.mod`
 * Git
-* Docker
-* Docker Compose
+* Docker y Docker Compose
 * PostgreSQL
+* Atlas CLI para migraciones versionadas de producción
 * Redis, si está habilitado
+
+En macOS, instala Atlas con:
+
+```bash
+brew install ariga/tap/atlas
+```
 
 ---
 
@@ -1476,7 +1517,7 @@ cp .env.example .env
 
 Completar las variables requeridas.
 
-> La aplicación lee las variables del entorno mediante `os.Getenv`; no carga el archivo `.env` automáticamente. Antes de ejecutar localmente, se puede exportar su contenido en una terminal compatible con `sh`/`bash`:
+> `make run`, `make migrate-status` y `make migrate-apply` cargan automáticamente `.env`. Si ejecutas `go run` directamente, debes exportar las variables antes:
 >
 > ```bash
 > set -a
@@ -1504,10 +1545,12 @@ docker compose up -d postgres redis
 
 ---
 
-## 6. Migraciones
+## 6. Generar el cliente Ent
+
+Solo es necesario después de modificar un schema:
 
 ```bash
-make migrate-up
+make ent-generate
 ```
 
 ---
@@ -1828,7 +1871,7 @@ Antes de considerar el boilerplate listo para producción debería contar con:
 * [ ] PostgreSQL
 * [ ] Connection Pool
 * [ ] Repository Pattern
-* [ ] Migrations
+* [ ] Estrategia de cambios destructivos y respaldo del esquema
 * [ ] Transactions
 * [ ] DTO Request / Response
 * [ ] Validation
@@ -1877,7 +1920,7 @@ El Core no debe importar directamente:
 
 ```text
 github.com/gin-gonic/gin
-gorm.io/gorm
+entgo.io/ent
 github.com/redis/go-redis
 net/http
 ```
@@ -1943,7 +1986,7 @@ La arquitectura debe permitir reemplazar:
 ```text
 Gin
 PostgreSQL
-GORM
+Ent
 Redis
 JWT Provider
 Storage Provider
