@@ -3,7 +3,11 @@
 package ent
 
 import (
+	"hexagonal-go-backend/internal/ent/coursecategories"
+	"hexagonal-go-backend/internal/ent/coursetemplates"
 	"hexagonal-go-backend/internal/ent/schema"
+	"hexagonal-go-backend/internal/ent/tenantmixin"
+	"hexagonal-go-backend/internal/ent/timemixin"
 	"hexagonal-go-backend/internal/ent/user"
 	"time"
 )
@@ -12,6 +16,152 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	coursecategoriesMixin := schema.CourseCategories{}.Mixin()
+	coursecategoriesMixinFields0 := coursecategoriesMixin[0].Fields()
+	_ = coursecategoriesMixinFields0
+	coursecategoriesMixinFields1 := coursecategoriesMixin[1].Fields()
+	_ = coursecategoriesMixinFields1
+	coursecategoriesFields := schema.CourseCategories{}.Fields()
+	_ = coursecategoriesFields
+	// coursecategoriesDescTenantID is the schema descriptor for tenant_id field.
+	coursecategoriesDescTenantID := coursecategoriesMixinFields0[0].Descriptor()
+	// coursecategories.TenantIDValidator is a validator for the "tenant_id" field. It is called by the builders before save.
+	coursecategories.TenantIDValidator = coursecategoriesDescTenantID.Validators[0].(func(string) error)
+	// coursecategoriesDescCreatedAt is the schema descriptor for created_at field.
+	coursecategoriesDescCreatedAt := coursecategoriesMixinFields1[0].Descriptor()
+	// coursecategories.DefaultCreatedAt holds the default value on creation for the created_at field.
+	coursecategories.DefaultCreatedAt = coursecategoriesDescCreatedAt.Default.(time.Time)
+	// coursecategoriesDescUpdatedAt is the schema descriptor for updated_at field.
+	coursecategoriesDescUpdatedAt := coursecategoriesMixinFields1[1].Descriptor()
+	// coursecategories.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	coursecategories.DefaultUpdatedAt = coursecategoriesDescUpdatedAt.Default.(time.Time)
+	// coursecategories.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	coursecategories.UpdateDefaultUpdatedAt = coursecategoriesDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// coursecategoriesDescCode is the schema descriptor for code field.
+	coursecategoriesDescCode := coursecategoriesFields[1].Descriptor()
+	// coursecategories.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	coursecategories.CodeValidator = func() func(string) error {
+		validators := coursecategoriesDescCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(code string) error {
+			for _, fn := range fns {
+				if err := fn(code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// coursecategoriesDescName is the schema descriptor for name field.
+	coursecategoriesDescName := coursecategoriesFields[2].Descriptor()
+	// coursecategories.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	coursecategories.NameValidator = func() func(string) error {
+		validators := coursecategoriesDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// coursecategoriesDescDescription is the schema descriptor for description field.
+	coursecategoriesDescDescription := coursecategoriesFields[3].Descriptor()
+	// coursecategories.DefaultDescription holds the default value on creation for the description field.
+	coursecategories.DefaultDescription = coursecategoriesDescDescription.Default.(string)
+	// coursecategoriesDescParentID is the schema descriptor for parent_id field.
+	coursecategoriesDescParentID := coursecategoriesFields[4].Descriptor()
+	// coursecategories.ParentIDValidator is a validator for the "parent_id" field. It is called by the builders before save.
+	coursecategories.ParentIDValidator = coursecategoriesDescParentID.Validators[0].(func(string) error)
+	coursetemplatesMixin := schema.CourseTemplates{}.Mixin()
+	coursetemplatesMixinFields0 := coursetemplatesMixin[0].Fields()
+	_ = coursetemplatesMixinFields0
+	coursetemplatesMixinFields1 := coursetemplatesMixin[1].Fields()
+	_ = coursetemplatesMixinFields1
+	coursetemplatesFields := schema.CourseTemplates{}.Fields()
+	_ = coursetemplatesFields
+	// coursetemplatesDescTenantID is the schema descriptor for tenant_id field.
+	coursetemplatesDescTenantID := coursetemplatesMixinFields0[0].Descriptor()
+	// coursetemplates.TenantIDValidator is a validator for the "tenant_id" field. It is called by the builders before save.
+	coursetemplates.TenantIDValidator = coursetemplatesDescTenantID.Validators[0].(func(string) error)
+	// coursetemplatesDescCreatedAt is the schema descriptor for created_at field.
+	coursetemplatesDescCreatedAt := coursetemplatesMixinFields1[0].Descriptor()
+	// coursetemplates.DefaultCreatedAt holds the default value on creation for the created_at field.
+	coursetemplates.DefaultCreatedAt = coursetemplatesDescCreatedAt.Default.(time.Time)
+	// coursetemplatesDescUpdatedAt is the schema descriptor for updated_at field.
+	coursetemplatesDescUpdatedAt := coursetemplatesMixinFields1[1].Descriptor()
+	// coursetemplates.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	coursetemplates.DefaultUpdatedAt = coursetemplatesDescUpdatedAt.Default.(time.Time)
+	// coursetemplates.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	coursetemplates.UpdateDefaultUpdatedAt = coursetemplatesDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// coursetemplatesDescCode is the schema descriptor for code field.
+	coursetemplatesDescCode := coursetemplatesFields[1].Descriptor()
+	// coursetemplates.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	coursetemplates.CodeValidator = func() func(string) error {
+		validators := coursetemplatesDescCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(code string) error {
+			for _, fn := range fns {
+				if err := fn(code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// coursetemplatesDescTitle is the schema descriptor for title field.
+	coursetemplatesDescTitle := coursetemplatesFields[2].Descriptor()
+	// coursetemplates.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	coursetemplates.TitleValidator = func() func(string) error {
+		validators := coursetemplatesDescTitle.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(title string) error {
+			for _, fn := range fns {
+				if err := fn(title); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// coursetemplatesDescDescription is the schema descriptor for description field.
+	coursetemplatesDescDescription := coursetemplatesFields[3].Descriptor()
+	// coursetemplates.DefaultDescription holds the default value on creation for the description field.
+	coursetemplates.DefaultDescription = coursetemplatesDescDescription.Default.(string)
+	// coursetemplates.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	coursetemplates.DescriptionValidator = coursetemplatesDescDescription.Validators[0].(func(string) error)
+	tenantmixinFields := schema.TenantMixin{}.Fields()
+	_ = tenantmixinFields
+	// tenantmixinDescTenantID is the schema descriptor for tenant_id field.
+	tenantmixinDescTenantID := tenantmixinFields[0].Descriptor()
+	// tenantmixin.TenantIDValidator is a validator for the "tenant_id" field. It is called by the builders before save.
+	tenantmixin.TenantIDValidator = tenantmixinDescTenantID.Validators[0].(func(string) error)
+	timemixinFields := schema.TimeMixin{}.Fields()
+	_ = timemixinFields
+	// timemixinDescCreatedAt is the schema descriptor for created_at field.
+	timemixinDescCreatedAt := timemixinFields[0].Descriptor()
+	// timemixin.DefaultCreatedAt holds the default value on creation for the created_at field.
+	timemixin.DefaultCreatedAt = timemixinDescCreatedAt.Default.(time.Time)
+	// timemixinDescUpdatedAt is the schema descriptor for updated_at field.
+	timemixinDescUpdatedAt := timemixinFields[1].Descriptor()
+	// timemixin.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	timemixin.DefaultUpdatedAt = timemixinDescUpdatedAt.Default.(time.Time)
+	// timemixin.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	timemixin.UpdateDefaultUpdatedAt = timemixinDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescName is the schema descriptor for name field.

@@ -8,6 +8,62 @@ import (
 )
 
 var (
+	// CourseCategoriesColumns holds the columns for the "course_categories" table.
+	CourseCategoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "tenant_id", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Size: 100},
+		{Name: "name", Type: field.TypeString, Size: 250},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647, Default: ""},
+		{Name: "parent_id", Type: field.TypeString},
+	}
+	// CourseCategoriesTable holds the schema information for the "course_categories" table.
+	CourseCategoriesTable = &schema.Table{
+		Name:       "course_categories",
+		Columns:    CourseCategoriesColumns,
+		PrimaryKey: []*schema.Column{CourseCategoriesColumns[0]},
+	}
+	// CourseTemplatesColumns holds the columns for the "course_templates" table.
+	CourseTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "tenant_id", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Unique: true, Size: 200},
+		{Name: "title", Type: field.TypeString, Size: 200},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647, Default: ""},
+	}
+	// CourseTemplatesTable holds the schema information for the "course_templates" table.
+	CourseTemplatesTable = &schema.Table{
+		Name:       "course_templates",
+		Columns:    CourseTemplatesColumns,
+		PrimaryKey: []*schema.Column{CourseTemplatesColumns[0]},
+	}
+	// TenantMixinsColumns holds the columns for the "tenant_mixins" table.
+	TenantMixinsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "tenant_id", Type: field.TypeString},
+	}
+	// TenantMixinsTable holds the schema information for the "tenant_mixins" table.
+	TenantMixinsTable = &schema.Table{
+		Name:       "tenant_mixins",
+		Columns:    TenantMixinsColumns,
+		PrimaryKey: []*schema.Column{TenantMixinsColumns[0]},
+	}
+	// TimeMixinsColumns holds the columns for the "time_mixins" table.
+	TimeMixinsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// TimeMixinsTable holds the schema information for the "time_mixins" table.
+	TimeMixinsTable = &schema.Table{
+		Name:       "time_mixins",
+		Columns:    TimeMixinsColumns,
+		PrimaryKey: []*schema.Column{TimeMixinsColumns[0]},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
@@ -39,6 +95,10 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CourseCategoriesTable,
+		CourseTemplatesTable,
+		TenantMixinsTable,
+		TimeMixinsTable,
 		UsersTable,
 	}
 )

@@ -6,5 +6,17 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// CourseCategories is the predicate function for coursecategories builders.
+type CourseCategories func(*sql.Selector)
+
+// CourseTemplates is the predicate function for coursetemplates builders.
+type CourseTemplates func(*sql.Selector)
+
+// TenantMixin is the predicate function for tenantmixin builders.
+type TenantMixin func(*sql.Selector)
+
+// TimeMixin is the predicate function for timemixin builders.
+type TimeMixin func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

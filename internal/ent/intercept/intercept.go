@@ -7,7 +7,11 @@ import (
 	"fmt"
 
 	"hexagonal-go-backend/internal/ent"
+	"hexagonal-go-backend/internal/ent/coursecategories"
+	"hexagonal-go-backend/internal/ent/coursetemplates"
 	"hexagonal-go-backend/internal/ent/predicate"
+	"hexagonal-go-backend/internal/ent/tenantmixin"
+	"hexagonal-go-backend/internal/ent/timemixin"
 	"hexagonal-go-backend/internal/ent/user"
 
 	"entgo.io/ent/dialect/sql"
@@ -69,6 +73,114 @@ func (f TraverseFunc) Traverse(ctx context.Context, q ent.Query) error {
 	return f(ctx, query)
 }
 
+// The CourseCategoriesFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CourseCategoriesFunc func(context.Context, *ent.CourseCategoriesQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f CourseCategoriesFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.CourseCategoriesQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CourseCategoriesQuery", q)
+}
+
+// The TraverseCourseCategories type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCourseCategories func(context.Context, *ent.CourseCategoriesQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCourseCategories) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCourseCategories) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CourseCategoriesQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.CourseCategoriesQuery", q)
+}
+
+// The CourseTemplatesFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CourseTemplatesFunc func(context.Context, *ent.CourseTemplatesQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f CourseTemplatesFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.CourseTemplatesQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CourseTemplatesQuery", q)
+}
+
+// The TraverseCourseTemplates type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCourseTemplates func(context.Context, *ent.CourseTemplatesQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCourseTemplates) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCourseTemplates) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CourseTemplatesQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.CourseTemplatesQuery", q)
+}
+
+// The TenantMixinFunc type is an adapter to allow the use of ordinary function as a Querier.
+type TenantMixinFunc func(context.Context, *ent.TenantMixinQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f TenantMixinFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.TenantMixinQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.TenantMixinQuery", q)
+}
+
+// The TraverseTenantMixin type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseTenantMixin func(context.Context, *ent.TenantMixinQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseTenantMixin) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseTenantMixin) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.TenantMixinQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.TenantMixinQuery", q)
+}
+
+// The TimeMixinFunc type is an adapter to allow the use of ordinary function as a Querier.
+type TimeMixinFunc func(context.Context, *ent.TimeMixinQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f TimeMixinFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.TimeMixinQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.TimeMixinQuery", q)
+}
+
+// The TraverseTimeMixin type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseTimeMixin func(context.Context, *ent.TimeMixinQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseTimeMixin) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseTimeMixin) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.TimeMixinQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.TimeMixinQuery", q)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary function as a Querier.
 type UserFunc func(context.Context, *ent.UserQuery) (ent.Value, error)
 
@@ -99,6 +211,14 @@ func (f TraverseUser) Traverse(ctx context.Context, q ent.Query) error {
 // NewQuery returns the generic Query interface for the given typed query.
 func NewQuery(q ent.Query) (Query, error) {
 	switch q := q.(type) {
+	case *ent.CourseCategoriesQuery:
+		return &query[*ent.CourseCategoriesQuery, predicate.CourseCategories, coursecategories.OrderOption]{typ: ent.TypeCourseCategories, tq: q}, nil
+	case *ent.CourseTemplatesQuery:
+		return &query[*ent.CourseTemplatesQuery, predicate.CourseTemplates, coursetemplates.OrderOption]{typ: ent.TypeCourseTemplates, tq: q}, nil
+	case *ent.TenantMixinQuery:
+		return &query[*ent.TenantMixinQuery, predicate.TenantMixin, tenantmixin.OrderOption]{typ: ent.TypeTenantMixin, tq: q}, nil
+	case *ent.TimeMixinQuery:
+		return &query[*ent.TimeMixinQuery, predicate.TimeMixin, timemixin.OrderOption]{typ: ent.TypeTimeMixin, tq: q}, nil
 	case *ent.UserQuery:
 		return &query[*ent.UserQuery, predicate.User, user.OrderOption]{typ: ent.TypeUser, tq: q}, nil
 	default:
