@@ -15,7 +15,7 @@ type User struct {
 
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("id").StorageKey("id").Immutable(),
+
 		field.String("name").MaxLen(100).NotEmpty(),
 		field.String("email").MaxLen(255).NotEmpty(),
 		field.String("password_hash").NotEmpty().Sensitive(),
@@ -23,6 +23,12 @@ func (User) Fields() []ent.Field {
 		field.Bool("active").Default(true),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
+	}
+}
+
+func (User) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		IDMixin{},
 	}
 }
 

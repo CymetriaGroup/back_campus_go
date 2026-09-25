@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"hexagonal-go-backend/internal/modules/users/domain"
+	"hexagonal-go-backend/internal/platform/identifier"
 )
 
 type userService struct {
@@ -37,7 +38,7 @@ func (s *userService) Create(ctx context.Context, in CreateUserInput) (*domain.U
 		in.Role = domain.RoleUser
 	}
 	now := time.Now().UTC()
-	u := &domain.User{ID: newID(), Name: in.Name, Email: in.Email, PasswordHash: hash, Role: in.Role, Active: true, CreatedAt: now, UpdatedAt: now}
+	u := &domain.User{ID: identifier.New(), Name: in.Name, Email: in.Email, PasswordHash: hash, Role: in.Role, Active: true, CreatedAt: now, UpdatedAt: now}
 	if err := s.repo.Create(ctx, u); err != nil {
 		return nil, err
 	}
@@ -96,5 +97,3 @@ func (s *userService) Update(ctx context.Context, id string, in UpdateUserInput)
 func (s *userService) Delete(ctx context.Context, id string) error {
 	return s.repo.Delete(ctx, id)
 }
-
-func newID() string { return time.Now().UTC().Format("20060102150405.000000000") }

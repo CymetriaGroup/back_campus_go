@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -13,7 +14,7 @@ type CourseTemplates struct {
 // Fields of the CourseTemplates.
 func (CourseTemplates) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("id").StorageKey("id").Immutable(),
+
 		field.String("code").Unique().NotEmpty().MaxLen(200),
 		field.String("title").NotEmpty().MaxLen(200),
 		field.Text("description").Default("").Optional().NotEmpty(),
@@ -22,12 +23,14 @@ func (CourseTemplates) Fields() []ent.Field {
 
 // Edges of the CourseTemplates.
 func (CourseTemplates) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("versions", CourseVersions.Type),
+	}
 }
 
 func (CourseTemplates) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		TenantMixin{},
+		IDMixin{},
 		TimeMixin{},
 	}
 }
