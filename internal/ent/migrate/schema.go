@@ -52,6 +52,58 @@ var (
 		Columns:    TenantMixinsColumns,
 		PrimaryKey: []*schema.Column{TenantMixinsColumns[0]},
 	}
+	// TenantSettingsColumns holds the columns for the "tenant_settings" table.
+	TenantSettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "timezone", Type: field.TypeString, Size: 100, Default: "UTC"},
+		{Name: "language", Type: field.TypeString, Size: 10, Default: "es"},
+		{Name: "date_format", Type: field.TypeString, Size: 50, Default: "YYYY-MM-DD"},
+		{Name: "institutional_email", Type: field.TypeString, Size: 255, Default: ""},
+		{Name: "policies", Type: field.TypeJSON, Nullable: true},
+		{Name: "feature_flags", Type: field.TypeJSON, Nullable: true},
+		{Name: "tenants_settings", Type: field.TypeString, Unique: true, Nullable: true},
+	}
+	// TenantSettingsTable holds the schema information for the "tenant_settings" table.
+	TenantSettingsTable = &schema.Table{
+		Name:       "tenant_settings",
+		Columns:    TenantSettingsColumns,
+		PrimaryKey: []*schema.Column{TenantSettingsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tenant_settings_tenants_settings",
+				Columns:    []*schema.Column{TenantSettingsColumns[9]},
+				RefColumns: []*schema.Column{TenantsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// TenantsColumns holds the columns for the "tenants" table.
+	TenantsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "branding", Type: field.TypeJSON, Nullable: true},
+		{Name: "domains", Type: field.TypeJSON, Nullable: true},
+		{Name: "limits", Type: field.TypeJSON, Nullable: true},
+		{Name: "features", Type: field.TypeJSON, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "INACTIVE", "PENDING"}, Default: "ACTIVE"},
+	}
+	// TenantsTable holds the schema information for the "tenants" table.
+	TenantsTable = &schema.Table{
+		Name:       "tenants",
+		Columns:    TenantsColumns,
+		PrimaryKey: []*schema.Column{TenantsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "tenants_status",
+				Unique:  false,
+				Columns: []*schema.Column{TenantsColumns[8]},
+			},
+		},
+	}
 	// TimeMixinsColumns holds the columns for the "time_mixins" table.
 	TimeMixinsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -98,10 +150,13 @@ var (
 		CourseCategoriesTable,
 		CourseTemplatesTable,
 		TenantMixinsTable,
+		TenantSettingsTable,
+		TenantsTable,
 		TimeMixinsTable,
 		UsersTable,
 	}
 )
 
 func init() {
+	TenantSettingsTable.ForeignKeys[0].RefTable = TenantsTable
 }

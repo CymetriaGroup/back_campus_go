@@ -14,12 +14,15 @@ import (
 	"hexagonal-go-backend/internal/ent/coursecategories"
 	"hexagonal-go-backend/internal/ent/coursetemplates"
 	"hexagonal-go-backend/internal/ent/tenantmixin"
+	"hexagonal-go-backend/internal/ent/tenants"
+	"hexagonal-go-backend/internal/ent/tenantsettings"
 	"hexagonal-go-backend/internal/ent/timemixin"
 	"hexagonal-go-backend/internal/ent/user"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -33,6 +36,10 @@ type Client struct {
 	CourseTemplates *CourseTemplatesClient
 	// TenantMixin is the client for interacting with the TenantMixin builders.
 	TenantMixin *TenantMixinClient
+	// TenantSettings is the client for interacting with the TenantSettings builders.
+	TenantSettings *TenantSettingsClient
+	// Tenants is the client for interacting with the Tenants builders.
+	Tenants *TenantsClient
 	// TimeMixin is the client for interacting with the TimeMixin builders.
 	TimeMixin *TimeMixinClient
 	// User is the client for interacting with the User builders.
@@ -51,6 +58,8 @@ func (c *Client) init() {
 	c.CourseCategories = NewCourseCategoriesClient(c.config)
 	c.CourseTemplates = NewCourseTemplatesClient(c.config)
 	c.TenantMixin = NewTenantMixinClient(c.config)
+	c.TenantSettings = NewTenantSettingsClient(c.config)
+	c.Tenants = NewTenantsClient(c.config)
 	c.TimeMixin = NewTimeMixinClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -148,6 +157,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CourseCategories: NewCourseCategoriesClient(cfg),
 		CourseTemplates:  NewCourseTemplatesClient(cfg),
 		TenantMixin:      NewTenantMixinClient(cfg),
+		TenantSettings:   NewTenantSettingsClient(cfg),
+		Tenants:          NewTenantsClient(cfg),
 		TimeMixin:        NewTimeMixinClient(cfg),
 		User:             NewUserClient(cfg),
 	}, nil
@@ -172,6 +183,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CourseCategories: NewCourseCategoriesClient(cfg),
 		CourseTemplates:  NewCourseTemplatesClient(cfg),
 		TenantMixin:      NewTenantMixinClient(cfg),
+		TenantSettings:   NewTenantSettingsClient(cfg),
+		Tenants:          NewTenantsClient(cfg),
 		TimeMixin:        NewTimeMixinClient(cfg),
 		User:             NewUserClient(cfg),
 	}, nil
@@ -202,21 +215,23 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.CourseCategories.Use(hooks...)
-	c.CourseTemplates.Use(hooks...)
-	c.TenantMixin.Use(hooks...)
-	c.TimeMixin.Use(hooks...)
-	c.User.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.CourseCategories, c.CourseTemplates, c.TenantMixin, c.TenantSettings,
+		c.Tenants, c.TimeMixin, c.User,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.CourseCategories.Intercept(interceptors...)
-	c.CourseTemplates.Intercept(interceptors...)
-	c.TenantMixin.Intercept(interceptors...)
-	c.TimeMixin.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.CourseCategories, c.CourseTemplates, c.TenantMixin, c.TenantSettings,
+		c.Tenants, c.TimeMixin, c.User,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -228,6 +243,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CourseTemplates.mutate(ctx, m)
 	case *TenantMixinMutation:
 		return c.TenantMixin.mutate(ctx, m)
+	case *TenantSettingsMutation:
+		return c.TenantSettings.mutate(ctx, m)
+	case *TenantsMutation:
+		return c.Tenants.mutate(ctx, m)
 	case *TimeMixinMutation:
 		return c.TimeMixin.mutate(ctx, m)
 	case *UserMutation:
@@ -636,6 +655,304 @@ func (c *TenantMixinClient) mutate(ctx context.Context, m *TenantMixinMutation) 
 	}
 }
 
+// TenantSettingsClient is a client for the TenantSettings schema.
+type TenantSettingsClient struct {
+	config
+}
+
+// NewTenantSettingsClient returns a client for the TenantSettings from the given config.
+func NewTenantSettingsClient(c config) *TenantSettingsClient {
+	return &TenantSettingsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tenantsettings.Hooks(f(g(h())))`.
+func (c *TenantSettingsClient) Use(hooks ...Hook) {
+	c.hooks.TenantSettings = append(c.hooks.TenantSettings, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `tenantsettings.Intercept(f(g(h())))`.
+func (c *TenantSettingsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TenantSettings = append(c.inters.TenantSettings, interceptors...)
+}
+
+// Create returns a builder for creating a TenantSettings entity.
+func (c *TenantSettingsClient) Create() *TenantSettingsCreate {
+	mutation := newTenantSettingsMutation(c.config, OpCreate)
+	return &TenantSettingsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TenantSettings entities.
+func (c *TenantSettingsClient) CreateBulk(builders ...*TenantSettingsCreate) *TenantSettingsCreateBulk {
+	return &TenantSettingsCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TenantSettingsClient) MapCreateBulk(slice any, setFunc func(*TenantSettingsCreate, int)) *TenantSettingsCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TenantSettingsCreateBulk{err: fmt.Errorf("calling to TenantSettingsClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TenantSettingsCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TenantSettingsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TenantSettings.
+func (c *TenantSettingsClient) Update() *TenantSettingsUpdate {
+	mutation := newTenantSettingsMutation(c.config, OpUpdate)
+	return &TenantSettingsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TenantSettingsClient) UpdateOne(_m *TenantSettings) *TenantSettingsUpdateOne {
+	mutation := newTenantSettingsMutation(c.config, OpUpdateOne, withTenantSettings(_m))
+	return &TenantSettingsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TenantSettingsClient) UpdateOneID(id string) *TenantSettingsUpdateOne {
+	mutation := newTenantSettingsMutation(c.config, OpUpdateOne, withTenantSettingsID(id))
+	return &TenantSettingsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TenantSettings.
+func (c *TenantSettingsClient) Delete() *TenantSettingsDelete {
+	mutation := newTenantSettingsMutation(c.config, OpDelete)
+	return &TenantSettingsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TenantSettingsClient) DeleteOne(_m *TenantSettings) *TenantSettingsDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TenantSettingsClient) DeleteOneID(id string) *TenantSettingsDeleteOne {
+	builder := c.Delete().Where(tenantsettings.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TenantSettingsDeleteOne{builder}
+}
+
+// Query returns a query builder for TenantSettings.
+func (c *TenantSettingsClient) Query() *TenantSettingsQuery {
+	return &TenantSettingsQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTenantSettings},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a TenantSettings entity by its id.
+func (c *TenantSettingsClient) Get(ctx context.Context, id string) (*TenantSettings, error) {
+	return c.Query().Where(tenantsettings.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TenantSettingsClient) GetX(ctx context.Context, id string) *TenantSettings {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a TenantSettings.
+func (c *TenantSettingsClient) QueryTenant(_m *TenantSettings) *TenantsQuery {
+	query := (&TenantsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tenantsettings.Table, tenantsettings.FieldID, id),
+			sqlgraph.To(tenants.Table, tenants.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, tenantsettings.TenantTable, tenantsettings.TenantColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TenantSettingsClient) Hooks() []Hook {
+	return c.hooks.TenantSettings
+}
+
+// Interceptors returns the client interceptors.
+func (c *TenantSettingsClient) Interceptors() []Interceptor {
+	return c.inters.TenantSettings
+}
+
+func (c *TenantSettingsClient) mutate(ctx context.Context, m *TenantSettingsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TenantSettingsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TenantSettingsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TenantSettingsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TenantSettingsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown TenantSettings mutation op: %q", m.Op())
+	}
+}
+
+// TenantsClient is a client for the Tenants schema.
+type TenantsClient struct {
+	config
+}
+
+// NewTenantsClient returns a client for the Tenants from the given config.
+func NewTenantsClient(c config) *TenantsClient {
+	return &TenantsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tenants.Hooks(f(g(h())))`.
+func (c *TenantsClient) Use(hooks ...Hook) {
+	c.hooks.Tenants = append(c.hooks.Tenants, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `tenants.Intercept(f(g(h())))`.
+func (c *TenantsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Tenants = append(c.inters.Tenants, interceptors...)
+}
+
+// Create returns a builder for creating a Tenants entity.
+func (c *TenantsClient) Create() *TenantsCreate {
+	mutation := newTenantsMutation(c.config, OpCreate)
+	return &TenantsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Tenants entities.
+func (c *TenantsClient) CreateBulk(builders ...*TenantsCreate) *TenantsCreateBulk {
+	return &TenantsCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TenantsClient) MapCreateBulk(slice any, setFunc func(*TenantsCreate, int)) *TenantsCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TenantsCreateBulk{err: fmt.Errorf("calling to TenantsClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TenantsCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TenantsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Tenants.
+func (c *TenantsClient) Update() *TenantsUpdate {
+	mutation := newTenantsMutation(c.config, OpUpdate)
+	return &TenantsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TenantsClient) UpdateOne(_m *Tenants) *TenantsUpdateOne {
+	mutation := newTenantsMutation(c.config, OpUpdateOne, withTenants(_m))
+	return &TenantsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TenantsClient) UpdateOneID(id string) *TenantsUpdateOne {
+	mutation := newTenantsMutation(c.config, OpUpdateOne, withTenantsID(id))
+	return &TenantsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Tenants.
+func (c *TenantsClient) Delete() *TenantsDelete {
+	mutation := newTenantsMutation(c.config, OpDelete)
+	return &TenantsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TenantsClient) DeleteOne(_m *Tenants) *TenantsDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TenantsClient) DeleteOneID(id string) *TenantsDeleteOne {
+	builder := c.Delete().Where(tenants.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TenantsDeleteOne{builder}
+}
+
+// Query returns a query builder for Tenants.
+func (c *TenantsClient) Query() *TenantsQuery {
+	return &TenantsQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTenants},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Tenants entity by its id.
+func (c *TenantsClient) Get(ctx context.Context, id string) (*Tenants, error) {
+	return c.Query().Where(tenants.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TenantsClient) GetX(ctx context.Context, id string) *Tenants {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySettings queries the settings edge of a Tenants.
+func (c *TenantsClient) QuerySettings(_m *Tenants) *TenantSettingsQuery {
+	query := (&TenantSettingsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tenants.Table, tenants.FieldID, id),
+			sqlgraph.To(tenantsettings.Table, tenantsettings.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, tenants.SettingsTable, tenants.SettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TenantsClient) Hooks() []Hook {
+	return c.hooks.Tenants
+}
+
+// Interceptors returns the client interceptors.
+func (c *TenantsClient) Interceptors() []Interceptor {
+	return c.inters.Tenants
+}
+
+func (c *TenantsClient) mutate(ctx context.Context, m *TenantsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TenantsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TenantsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TenantsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TenantsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Tenants mutation op: %q", m.Op())
+	}
+}
+
 // TimeMixinClient is a client for the TimeMixin schema.
 type TimeMixinClient struct {
 	config
@@ -905,10 +1222,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		CourseCategories, CourseTemplates, TenantMixin, TimeMixin, User []ent.Hook
+		CourseCategories, CourseTemplates, TenantMixin, TenantSettings, Tenants,
+		TimeMixin, User []ent.Hook
 	}
 	inters struct {
-		CourseCategories, CourseTemplates, TenantMixin, TimeMixin,
-		User []ent.Interceptor
+		CourseCategories, CourseTemplates, TenantMixin, TenantSettings, Tenants,
+		TimeMixin, User []ent.Interceptor
 	}
 )

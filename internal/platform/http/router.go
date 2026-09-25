@@ -6,6 +6,7 @@ import (
 
 	authapp "hexagonal-go-backend/internal/modules/auth/application"
 	authhttp "hexagonal-go-backend/internal/modules/auth/delivery/http/v1"
+	tenanthttp "hexagonal-go-backend/internal/modules/tenants/delivery/http/v1"
 	usershttp "hexagonal-go-backend/internal/modules/users/delivery/http/v1"
 	userdomain "hexagonal-go-backend/internal/modules/users/domain"
 	"hexagonal-go-backend/internal/platform/config"
@@ -14,7 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewRouter(cfg config.Config, logger *slog.Logger, users *usershttp.Controller, auth *authhttp.Controller, tokens authapp.TokenProvider) *gin.Engine {
+func NewRouter(cfg config.Config, logger *slog.Logger, users *usershttp.Controller, auth *authhttp.Controller, tokens authapp.TokenProvider, tenants ...*tenanthttp.Controller) *gin.Engine {
 	if cfg.App.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -29,6 +30,10 @@ func NewRouter(cfg config.Config, logger *slog.Logger, users *usershttp.Controll
 	authRoutes.POST("/refresh", auth.Refresh)
 	authRoutes.POST("/logout", auth.Logout)
 
+	if len(tenants) > 0 && tenants[0] != nil {
+		tenants[0].RegisterRoutes(v1)
+	}
+
 	protected := v1.Group("")
 	protected.Use(middleware.Authenticate(tokens))
 	protected.GET("/users/:id", users.Get)
@@ -41,3 +46,4 @@ func NewRouter(cfg config.Config, logger *slog.Logger, users *usershttp.Controll
 	admin.DELETE("/users/:id", users.Delete)
 	return router
 }
+

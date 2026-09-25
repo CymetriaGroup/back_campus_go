@@ -44,6 +44,30 @@ func (f TenantMixinFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TenantMixinMutation", m)
 }
 
+// The TenantSettingsFunc type is an adapter to allow the use of ordinary
+// function as TenantSettings mutator.
+type TenantSettingsFunc func(context.Context, *ent.TenantSettingsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TenantSettingsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TenantSettingsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TenantSettingsMutation", m)
+}
+
+// The TenantsFunc type is an adapter to allow the use of ordinary
+// function as Tenants mutator.
+type TenantsFunc func(context.Context, *ent.TenantsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TenantsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TenantsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TenantsMutation", m)
+}
+
 // The TimeMixinFunc type is an adapter to allow the use of ordinary
 // function as TimeMixin mutator.
 type TimeMixinFunc func(context.Context, *ent.TimeMixinMutation) (ent.Value, error)

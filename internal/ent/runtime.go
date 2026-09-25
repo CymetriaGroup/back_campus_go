@@ -7,6 +7,8 @@ import (
 	"hexagonal-go-backend/internal/ent/coursetemplates"
 	"hexagonal-go-backend/internal/ent/schema"
 	"hexagonal-go-backend/internal/ent/tenantmixin"
+	"hexagonal-go-backend/internal/ent/tenants"
+	"hexagonal-go-backend/internal/ent/tenantsettings"
 	"hexagonal-go-backend/internal/ent/timemixin"
 	"hexagonal-go-backend/internal/ent/user"
 	"time"
@@ -150,6 +152,78 @@ func init() {
 	tenantmixinDescTenantID := tenantmixinFields[0].Descriptor()
 	// tenantmixin.TenantIDValidator is a validator for the "tenant_id" field. It is called by the builders before save.
 	tenantmixin.TenantIDValidator = tenantmixinDescTenantID.Validators[0].(func(string) error)
+	tenantsettingsMixin := schema.TenantSettings{}.Mixin()
+	tenantsettingsMixinFields0 := tenantsettingsMixin[0].Fields()
+	_ = tenantsettingsMixinFields0
+	tenantsettingsFields := schema.TenantSettings{}.Fields()
+	_ = tenantsettingsFields
+	// tenantsettingsDescCreatedAt is the schema descriptor for created_at field.
+	tenantsettingsDescCreatedAt := tenantsettingsMixinFields0[0].Descriptor()
+	// tenantsettings.DefaultCreatedAt holds the default value on creation for the created_at field.
+	tenantsettings.DefaultCreatedAt = tenantsettingsDescCreatedAt.Default.(time.Time)
+	// tenantsettingsDescUpdatedAt is the schema descriptor for updated_at field.
+	tenantsettingsDescUpdatedAt := tenantsettingsMixinFields0[1].Descriptor()
+	// tenantsettings.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	tenantsettings.DefaultUpdatedAt = tenantsettingsDescUpdatedAt.Default.(time.Time)
+	// tenantsettings.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	tenantsettings.UpdateDefaultUpdatedAt = tenantsettingsDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// tenantsettingsDescTimezone is the schema descriptor for timezone field.
+	tenantsettingsDescTimezone := tenantsettingsFields[1].Descriptor()
+	// tenantsettings.DefaultTimezone holds the default value on creation for the timezone field.
+	tenantsettings.DefaultTimezone = tenantsettingsDescTimezone.Default.(string)
+	// tenantsettings.TimezoneValidator is a validator for the "timezone" field. It is called by the builders before save.
+	tenantsettings.TimezoneValidator = tenantsettingsDescTimezone.Validators[0].(func(string) error)
+	// tenantsettingsDescLanguage is the schema descriptor for language field.
+	tenantsettingsDescLanguage := tenantsettingsFields[2].Descriptor()
+	// tenantsettings.DefaultLanguage holds the default value on creation for the language field.
+	tenantsettings.DefaultLanguage = tenantsettingsDescLanguage.Default.(string)
+	// tenantsettings.LanguageValidator is a validator for the "language" field. It is called by the builders before save.
+	tenantsettings.LanguageValidator = tenantsettingsDescLanguage.Validators[0].(func(string) error)
+	// tenantsettingsDescDateFormat is the schema descriptor for date_format field.
+	tenantsettingsDescDateFormat := tenantsettingsFields[3].Descriptor()
+	// tenantsettings.DefaultDateFormat holds the default value on creation for the date_format field.
+	tenantsettings.DefaultDateFormat = tenantsettingsDescDateFormat.Default.(string)
+	// tenantsettings.DateFormatValidator is a validator for the "date_format" field. It is called by the builders before save.
+	tenantsettings.DateFormatValidator = tenantsettingsDescDateFormat.Validators[0].(func(string) error)
+	// tenantsettingsDescInstitutionalEmail is the schema descriptor for institutional_email field.
+	tenantsettingsDescInstitutionalEmail := tenantsettingsFields[4].Descriptor()
+	// tenantsettings.DefaultInstitutionalEmail holds the default value on creation for the institutional_email field.
+	tenantsettings.DefaultInstitutionalEmail = tenantsettingsDescInstitutionalEmail.Default.(string)
+	// tenantsettings.InstitutionalEmailValidator is a validator for the "institutional_email" field. It is called by the builders before save.
+	tenantsettings.InstitutionalEmailValidator = tenantsettingsDescInstitutionalEmail.Validators[0].(func(string) error)
+	tenantsMixin := schema.Tenants{}.Mixin()
+	tenantsMixinFields0 := tenantsMixin[0].Fields()
+	_ = tenantsMixinFields0
+	tenantsFields := schema.Tenants{}.Fields()
+	_ = tenantsFields
+	// tenantsDescCreatedAt is the schema descriptor for created_at field.
+	tenantsDescCreatedAt := tenantsMixinFields0[0].Descriptor()
+	// tenants.DefaultCreatedAt holds the default value on creation for the created_at field.
+	tenants.DefaultCreatedAt = tenantsDescCreatedAt.Default.(time.Time)
+	// tenantsDescUpdatedAt is the schema descriptor for updated_at field.
+	tenantsDescUpdatedAt := tenantsMixinFields0[1].Descriptor()
+	// tenants.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	tenants.DefaultUpdatedAt = tenantsDescUpdatedAt.Default.(time.Time)
+	// tenants.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	tenants.UpdateDefaultUpdatedAt = tenantsDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// tenantsDescName is the schema descriptor for name field.
+	tenantsDescName := tenantsFields[1].Descriptor()
+	// tenants.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	tenants.NameValidator = func() func(string) error {
+		validators := tenantsDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	timemixinFields := schema.TimeMixin{}.Fields()
 	_ = timemixinFields
 	// timemixinDescCreatedAt is the schema descriptor for created_at field.

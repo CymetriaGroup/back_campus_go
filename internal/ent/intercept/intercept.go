@@ -11,6 +11,8 @@ import (
 	"hexagonal-go-backend/internal/ent/coursetemplates"
 	"hexagonal-go-backend/internal/ent/predicate"
 	"hexagonal-go-backend/internal/ent/tenantmixin"
+	"hexagonal-go-backend/internal/ent/tenants"
+	"hexagonal-go-backend/internal/ent/tenantsettings"
 	"hexagonal-go-backend/internal/ent/timemixin"
 	"hexagonal-go-backend/internal/ent/user"
 
@@ -154,6 +156,60 @@ func (f TraverseTenantMixin) Traverse(ctx context.Context, q ent.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *ent.TenantMixinQuery", q)
 }
 
+// The TenantSettingsFunc type is an adapter to allow the use of ordinary function as a Querier.
+type TenantSettingsFunc func(context.Context, *ent.TenantSettingsQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f TenantSettingsFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.TenantSettingsQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.TenantSettingsQuery", q)
+}
+
+// The TraverseTenantSettings type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseTenantSettings func(context.Context, *ent.TenantSettingsQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseTenantSettings) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseTenantSettings) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.TenantSettingsQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.TenantSettingsQuery", q)
+}
+
+// The TenantsFunc type is an adapter to allow the use of ordinary function as a Querier.
+type TenantsFunc func(context.Context, *ent.TenantsQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f TenantsFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.TenantsQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.TenantsQuery", q)
+}
+
+// The TraverseTenants type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseTenants func(context.Context, *ent.TenantsQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseTenants) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseTenants) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.TenantsQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.TenantsQuery", q)
+}
+
 // The TimeMixinFunc type is an adapter to allow the use of ordinary function as a Querier.
 type TimeMixinFunc func(context.Context, *ent.TimeMixinQuery) (ent.Value, error)
 
@@ -217,6 +273,10 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.CourseTemplatesQuery, predicate.CourseTemplates, coursetemplates.OrderOption]{typ: ent.TypeCourseTemplates, tq: q}, nil
 	case *ent.TenantMixinQuery:
 		return &query[*ent.TenantMixinQuery, predicate.TenantMixin, tenantmixin.OrderOption]{typ: ent.TypeTenantMixin, tq: q}, nil
+	case *ent.TenantSettingsQuery:
+		return &query[*ent.TenantSettingsQuery, predicate.TenantSettings, tenantsettings.OrderOption]{typ: ent.TypeTenantSettings, tq: q}, nil
+	case *ent.TenantsQuery:
+		return &query[*ent.TenantsQuery, predicate.Tenants, tenants.OrderOption]{typ: ent.TypeTenants, tq: q}, nil
 	case *ent.TimeMixinQuery:
 		return &query[*ent.TimeMixinQuery, predicate.TimeMixin, timemixin.OrderOption]{typ: ent.TypeTimeMixin, tq: q}, nil
 	case *ent.UserQuery:

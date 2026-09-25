@@ -4,6 +4,7 @@ CMD := ./cmd/api
 MODULES_DIR := internal/modules
 MIGRATIONS_DIR := file://migrations
 ATLAS ?= atlas
+export GOTOOLCHAIN ?= go1.26.0
 
 .PHONY: run build test cover fmt fmt-check vet lint check ent-generate ent-schema atlas-check migration-diff migrate-baseline migrate-apply migrate-status docker-up docker-down module clean
 
@@ -39,7 +40,7 @@ lint:
 check: fmt-check vet test build
 
 ent-generate:
-	GOTOOLCHAIN=go1.26.0 go generate ./internal/ent
+	go generate ./internal/ent
 
 # Uso: make ent-schema NAME=Course
 ent-schema:
@@ -55,7 +56,7 @@ ent-schema:
 		echo "Error: el schema $(NAME) ya existe."; \
 		exit 1; \
 	fi
-	GOTOOLCHAIN=go1.26.0 go run entgo.io/ent/cmd/ent new --target internal/ent/schema $(NAME)
+	go run entgo.io/ent/cmd/ent new --target internal/ent/schema $(NAME)
 	$(MAKE) ent-generate
 
 atlas-check:
@@ -74,7 +75,7 @@ migration-diff: atlas-check
 		echo "Error: NAME debe usar snake_case."; \
 		exit 1; \
 	fi
-	GOTOOLCHAIN=go1.26.0 $(ATLAS) migrate diff $(NAME) \
+	$(ATLAS) migrate diff $(NAME) \
 		--dir "$(MIGRATIONS_DIR)" \
 		--to "ent://internal/ent/schema" \
 		--dev-url "docker://postgres/17/dev?search_path=public"
@@ -97,7 +98,7 @@ migrate-baseline: atlas-check
 	set -a; \
 	. ./.env; \
 	set +a; \
-	GOTOOLCHAIN=go1.26.0 $(ATLAS) migrate apply --dir "$(MIGRATIONS_DIR)" --url "$$DATABASE_URL" --baseline "$(VERSION)"
+	$(ATLAS) migrate apply --dir "$(MIGRATIONS_DIR)" --url "$$DATABASE_URL" --baseline "$(VERSION)"
 
 migrate-apply: atlas-check
 	@if [ ! -f .env ]; then \
@@ -107,7 +108,7 @@ migrate-apply: atlas-check
 	set -a; \
 	. ./.env; \
 	set +a; \
-	GOTOOLCHAIN=go1.26.0 $(ATLAS) migrate apply --dir "$(MIGRATIONS_DIR)" --url "$$DATABASE_URL"
+	$(ATLAS) migrate apply --dir "$(MIGRATIONS_DIR)" --url "$$DATABASE_URL"
 
 migrate-status: atlas-check
 	@if [ ! -f .env ]; then \

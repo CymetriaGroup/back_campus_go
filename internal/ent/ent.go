@@ -9,6 +9,8 @@ import (
 	"hexagonal-go-backend/internal/ent/coursecategories"
 	"hexagonal-go-backend/internal/ent/coursetemplates"
 	"hexagonal-go-backend/internal/ent/tenantmixin"
+	"hexagonal-go-backend/internal/ent/tenants"
+	"hexagonal-go-backend/internal/ent/tenantsettings"
 	"hexagonal-go-backend/internal/ent/timemixin"
 	"hexagonal-go-backend/internal/ent/user"
 	"reflect"
@@ -80,6 +82,8 @@ func checkColumn(t, c string) error {
 			coursecategories.Table: coursecategories.ValidColumn,
 			coursetemplates.Table:  coursetemplates.ValidColumn,
 			tenantmixin.Table:      tenantmixin.ValidColumn,
+			tenantsettings.Table:   tenantsettings.ValidColumn,
+			tenants.Table:          tenants.ValidColumn,
 			timemixin.Table:        timemixin.ValidColumn,
 			user.Table:             user.ValidColumn,
 		})

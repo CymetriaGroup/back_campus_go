@@ -15,6 +15,12 @@ type CourseTemplates func(*sql.Selector)
 // TenantMixin is the predicate function for tenantmixin builders.
 type TenantMixin func(*sql.Selector)
 
+// TenantSettings is the predicate function for tenantsettings builders.
+type TenantSettings func(*sql.Selector)
+
+// Tenants is the predicate function for tenants builders.
+type Tenants func(*sql.Selector)
+
 // TimeMixin is the predicate function for timemixin builders.
 type TimeMixin func(*sql.Selector)
 
