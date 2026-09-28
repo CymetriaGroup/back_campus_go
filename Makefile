@@ -5,7 +5,7 @@ MODULES_DIR := internal/modules
 MIGRATIONS_DIR := file://migrations
 ATLAS ?= atlas
 
-.PHONY: run build test cover fmt fmt-check vet lint check swagger ent-generate ent-schema atlas-check migration-diff migrate-baseline migrate-apply migrate-status docker-up docker-down module clean
+.PHONY: run dev build test cover fmt fmt-check vet lint check swagger ent-generate ent-schema atlas-check migration-diff migrate-baseline migrate-apply migrate-status docker-up docker-down module clean
 
 run:
 	@if [ -f .env ]; then \
@@ -14,6 +14,14 @@ run:
 		set +a; \
 	fi; \
 	go run $(CMD)
+
+dev:
+	@if [ -f .env ]; then \
+		set -a; \
+		. ./.env; \
+		set +a; \
+	fi; \
+	which air >/dev/null 2>&1 && air || go run github.com/air-verse/air@v1.61.7
 
 build:
 	go build -o $(APP) $(CMD)
@@ -167,4 +175,4 @@ module:
 		echo "Módulo $(MODULE) creado en $$base"
 
 clean:
-	rm -rf bin coverage.out
+	rm -rf bin coverage.out tmp
