@@ -6,39 +6,39 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/predicate"
-	"hexagonal-go-backend/internal/ent/tenantmixin"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
 
-// TenantMixinUpdate is the builder for updating TenantMixin entities.
-type TenantMixinUpdate struct {
+// CourseModulesUpdate is the builder for updating CourseModules entities.
+type CourseModulesUpdate struct {
 	config
 	hooks    []Hook
-	mutation *TenantMixinMutation
+	mutation *CourseModulesMutation
 }
 
-// Where appends a list predicates to the TenantMixinUpdate builder.
-func (_u *TenantMixinUpdate) Where(ps ...predicate.TenantMixin) *TenantMixinUpdate {
+// Where appends a list predicates to the CourseModulesUpdate builder.
+func (_u *CourseModulesUpdate) Where(ps ...predicate.CourseModules) *CourseModulesUpdate {
 	_u.mutation.Where(ps...)
 	return _u
 }
 
-// Mutation returns the TenantMixinMutation object of the builder.
-func (_u *TenantMixinUpdate) Mutation() *TenantMixinMutation {
+// Mutation returns the CourseModulesMutation object of the builder.
+func (_u *CourseModulesUpdate) Mutation() *CourseModulesMutation {
 	return _u.mutation
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (_u *TenantMixinUpdate) Save(ctx context.Context) (int, error) {
+func (_u *CourseModulesUpdate) Save(ctx context.Context) (int, error) {
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_u *TenantMixinUpdate) SaveX(ctx context.Context) int {
+func (_u *CourseModulesUpdate) SaveX(ctx context.Context) int {
 	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -47,20 +47,20 @@ func (_u *TenantMixinUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (_u *TenantMixinUpdate) Exec(ctx context.Context) error {
+func (_u *CourseModulesUpdate) Exec(ctx context.Context) error {
 	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_u *TenantMixinUpdate) ExecX(ctx context.Context) {
+func (_u *CourseModulesUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (_u *TenantMixinUpdate) sqlSave(ctx context.Context) (_node int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(tenantmixin.Table, tenantmixin.Columns, sqlgraph.NewFieldSpec(tenantmixin.FieldID, field.TypeInt))
+func (_u *CourseModulesUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	_spec := sqlgraph.NewUpdateSpec(coursemodules.Table, coursemodules.Columns, sqlgraph.NewFieldSpec(coursemodules.FieldID, field.TypeString))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -70,7 +70,7 @@ func (_u *TenantMixinUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{tenantmixin.Label}
+			err = &NotFoundError{coursemodules.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -80,39 +80,39 @@ func (_u *TenantMixinUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	return _node, nil
 }
 
-// TenantMixinUpdateOne is the builder for updating a single TenantMixin entity.
-type TenantMixinUpdateOne struct {
+// CourseModulesUpdateOne is the builder for updating a single CourseModules entity.
+type CourseModulesUpdateOne struct {
 	config
 	fields   []string
 	hooks    []Hook
-	mutation *TenantMixinMutation
+	mutation *CourseModulesMutation
 }
 
-// Mutation returns the TenantMixinMutation object of the builder.
-func (_u *TenantMixinUpdateOne) Mutation() *TenantMixinMutation {
+// Mutation returns the CourseModulesMutation object of the builder.
+func (_u *CourseModulesUpdateOne) Mutation() *CourseModulesMutation {
 	return _u.mutation
 }
 
-// Where appends a list predicates to the TenantMixinUpdate builder.
-func (_u *TenantMixinUpdateOne) Where(ps ...predicate.TenantMixin) *TenantMixinUpdateOne {
+// Where appends a list predicates to the CourseModulesUpdate builder.
+func (_u *CourseModulesUpdateOne) Where(ps ...predicate.CourseModules) *CourseModulesUpdateOne {
 	_u.mutation.Where(ps...)
 	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (_u *TenantMixinUpdateOne) Select(field string, fields ...string) *TenantMixinUpdateOne {
+func (_u *CourseModulesUpdateOne) Select(field string, fields ...string) *CourseModulesUpdateOne {
 	_u.fields = append([]string{field}, fields...)
 	return _u
 }
 
-// Save executes the query and returns the updated TenantMixin entity.
-func (_u *TenantMixinUpdateOne) Save(ctx context.Context) (*TenantMixin, error) {
+// Save executes the query and returns the updated CourseModules entity.
+func (_u *CourseModulesUpdateOne) Save(ctx context.Context) (*CourseModules, error) {
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_u *TenantMixinUpdateOne) SaveX(ctx context.Context) *TenantMixin {
+func (_u *CourseModulesUpdateOne) SaveX(ctx context.Context) *CourseModules {
 	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -121,33 +121,33 @@ func (_u *TenantMixinUpdateOne) SaveX(ctx context.Context) *TenantMixin {
 }
 
 // Exec executes the query on the entity.
-func (_u *TenantMixinUpdateOne) Exec(ctx context.Context) error {
+func (_u *CourseModulesUpdateOne) Exec(ctx context.Context) error {
 	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_u *TenantMixinUpdateOne) ExecX(ctx context.Context) {
+func (_u *CourseModulesUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (_u *TenantMixinUpdateOne) sqlSave(ctx context.Context) (_node *TenantMixin, err error) {
-	_spec := sqlgraph.NewUpdateSpec(tenantmixin.Table, tenantmixin.Columns, sqlgraph.NewFieldSpec(tenantmixin.FieldID, field.TypeInt))
+func (_u *CourseModulesUpdateOne) sqlSave(ctx context.Context) (_node *CourseModules, err error) {
+	_spec := sqlgraph.NewUpdateSpec(coursemodules.Table, coursemodules.Columns, sqlgraph.NewFieldSpec(coursemodules.FieldID, field.TypeString))
 	id, ok := _u.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "TenantMixin.id" for update`)}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "CourseModules.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, tenantmixin.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, coursemodules.FieldID)
 		for _, f := range fields {
-			if !tenantmixin.ValidColumn(f) {
+			if !coursemodules.ValidColumn(f) {
 				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 			}
-			if f != tenantmixin.FieldID {
+			if f != coursemodules.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, f)
 			}
 		}
@@ -159,12 +159,12 @@ func (_u *TenantMixinUpdateOne) sqlSave(ctx context.Context) (_node *TenantMixin
 			}
 		}
 	}
-	_node = &TenantMixin{config: _u.config}
+	_node = &CourseModules{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
 	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{tenantmixin.Label}
+			err = &NotFoundError{coursemodules.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}

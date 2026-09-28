@@ -5,8 +5,8 @@ package ent
 import (
 	"context"
 	"fmt"
+	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/predicate"
-	"hexagonal-go-backend/internal/ent/tenantmixin"
 	"math"
 
 	"entgo.io/ent"
@@ -15,64 +15,64 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// TenantMixinQuery is the builder for querying TenantMixin entities.
-type TenantMixinQuery struct {
+// CourseModulesQuery is the builder for querying CourseModules entities.
+type CourseModulesQuery struct {
 	config
 	ctx        *QueryContext
-	order      []tenantmixin.OrderOption
+	order      []coursemodules.OrderOption
 	inters     []Interceptor
-	predicates []predicate.TenantMixin
+	predicates []predicate.CourseModules
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the TenantMixinQuery builder.
-func (_q *TenantMixinQuery) Where(ps ...predicate.TenantMixin) *TenantMixinQuery {
+// Where adds a new predicate for the CourseModulesQuery builder.
+func (_q *CourseModulesQuery) Where(ps ...predicate.CourseModules) *CourseModulesQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *TenantMixinQuery) Limit(limit int) *TenantMixinQuery {
+func (_q *CourseModulesQuery) Limit(limit int) *CourseModulesQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *TenantMixinQuery) Offset(offset int) *TenantMixinQuery {
+func (_q *CourseModulesQuery) Offset(offset int) *CourseModulesQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *TenantMixinQuery) Unique(unique bool) *TenantMixinQuery {
+func (_q *CourseModulesQuery) Unique(unique bool) *CourseModulesQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *TenantMixinQuery) Order(o ...tenantmixin.OrderOption) *TenantMixinQuery {
+func (_q *CourseModulesQuery) Order(o ...coursemodules.OrderOption) *CourseModulesQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
-// First returns the first TenantMixin entity from the query.
-// Returns a *NotFoundError when no TenantMixin was found.
-func (_q *TenantMixinQuery) First(ctx context.Context) (*TenantMixin, error) {
+// First returns the first CourseModules entity from the query.
+// Returns a *NotFoundError when no CourseModules was found.
+func (_q *CourseModulesQuery) First(ctx context.Context) (*CourseModules, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{tenantmixin.Label}
+		return nil, &NotFoundError{coursemodules.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *TenantMixinQuery) FirstX(ctx context.Context) *TenantMixin {
+func (_q *CourseModulesQuery) FirstX(ctx context.Context) *CourseModules {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -80,22 +80,22 @@ func (_q *TenantMixinQuery) FirstX(ctx context.Context) *TenantMixin {
 	return node
 }
 
-// FirstID returns the first TenantMixin ID from the query.
-// Returns a *NotFoundError when no TenantMixin ID was found.
-func (_q *TenantMixinQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+// FirstID returns the first CourseModules ID from the query.
+// Returns a *NotFoundError when no CourseModules ID was found.
+func (_q *CourseModulesQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{tenantmixin.Label}
+		err = &NotFoundError{coursemodules.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *TenantMixinQuery) FirstIDX(ctx context.Context) int {
+func (_q *CourseModulesQuery) FirstIDX(ctx context.Context) string {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -103,10 +103,10 @@ func (_q *TenantMixinQuery) FirstIDX(ctx context.Context) int {
 	return id
 }
 
-// Only returns a single TenantMixin entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one TenantMixin entity is found.
-// Returns a *NotFoundError when no TenantMixin entities are found.
-func (_q *TenantMixinQuery) Only(ctx context.Context) (*TenantMixin, error) {
+// Only returns a single CourseModules entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one CourseModules entity is found.
+// Returns a *NotFoundError when no CourseModules entities are found.
+func (_q *CourseModulesQuery) Only(ctx context.Context) (*CourseModules, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -115,14 +115,14 @@ func (_q *TenantMixinQuery) Only(ctx context.Context) (*TenantMixin, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{tenantmixin.Label}
+		return nil, &NotFoundError{coursemodules.Label}
 	default:
-		return nil, &NotSingularError{tenantmixin.Label}
+		return nil, &NotSingularError{coursemodules.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *TenantMixinQuery) OnlyX(ctx context.Context) *TenantMixin {
+func (_q *CourseModulesQuery) OnlyX(ctx context.Context) *CourseModules {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -130,11 +130,11 @@ func (_q *TenantMixinQuery) OnlyX(ctx context.Context) *TenantMixin {
 	return node
 }
 
-// OnlyID is like Only, but returns the only TenantMixin ID in the query.
-// Returns a *NotSingularError when more than one TenantMixin ID is found.
+// OnlyID is like Only, but returns the only CourseModules ID in the query.
+// Returns a *NotSingularError when more than one CourseModules ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *TenantMixinQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *CourseModulesQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -142,15 +142,15 @@ func (_q *TenantMixinQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{tenantmixin.Label}
+		err = &NotFoundError{coursemodules.Label}
 	default:
-		err = &NotSingularError{tenantmixin.Label}
+		err = &NotSingularError{coursemodules.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *TenantMixinQuery) OnlyIDX(ctx context.Context) int {
+func (_q *CourseModulesQuery) OnlyIDX(ctx context.Context) string {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -158,18 +158,18 @@ func (_q *TenantMixinQuery) OnlyIDX(ctx context.Context) int {
 	return id
 }
 
-// All executes the query and returns a list of TenantMixins.
-func (_q *TenantMixinQuery) All(ctx context.Context) ([]*TenantMixin, error) {
+// All executes the query and returns a list of CourseModulesSlice.
+func (_q *CourseModulesQuery) All(ctx context.Context) ([]*CourseModules, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*TenantMixin, *TenantMixinQuery]()
-	return withInterceptors[[]*TenantMixin](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*CourseModules, *CourseModulesQuery]()
+	return withInterceptors[[]*CourseModules](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *TenantMixinQuery) AllX(ctx context.Context) []*TenantMixin {
+func (_q *CourseModulesQuery) AllX(ctx context.Context) []*CourseModules {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -177,20 +177,20 @@ func (_q *TenantMixinQuery) AllX(ctx context.Context) []*TenantMixin {
 	return nodes
 }
 
-// IDs executes the query and returns a list of TenantMixin IDs.
-func (_q *TenantMixinQuery) IDs(ctx context.Context) (ids []int, err error) {
+// IDs executes the query and returns a list of CourseModules IDs.
+func (_q *CourseModulesQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(tenantmixin.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(coursemodules.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *TenantMixinQuery) IDsX(ctx context.Context) []int {
+func (_q *CourseModulesQuery) IDsX(ctx context.Context) []string {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -199,16 +199,16 @@ func (_q *TenantMixinQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (_q *TenantMixinQuery) Count(ctx context.Context) (int, error) {
+func (_q *CourseModulesQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*TenantMixinQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*CourseModulesQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *TenantMixinQuery) CountX(ctx context.Context) int {
+func (_q *CourseModulesQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -217,7 +217,7 @@ func (_q *TenantMixinQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *TenantMixinQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *CourseModulesQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -230,7 +230,7 @@ func (_q *TenantMixinQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *TenantMixinQuery) ExistX(ctx context.Context) bool {
+func (_q *CourseModulesQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -238,18 +238,18 @@ func (_q *TenantMixinQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the TenantMixinQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the CourseModulesQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *TenantMixinQuery) Clone() *TenantMixinQuery {
+func (_q *CourseModulesQuery) Clone() *CourseModulesQuery {
 	if _q == nil {
 		return nil
 	}
-	return &TenantMixinQuery{
+	return &CourseModulesQuery{
 		config:     _q.config,
 		ctx:        _q.ctx.Clone(),
-		order:      append([]tenantmixin.OrderOption{}, _q.order...),
+		order:      append([]coursemodules.OrderOption{}, _q.order...),
 		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.TenantMixin{}, _q.predicates...),
+		predicates: append([]predicate.CourseModules{}, _q.predicates...),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -258,53 +258,31 @@ func (_q *TenantMixinQuery) Clone() *TenantMixinQuery {
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
-//
-// Example:
-//
-//	var v []struct {
-//		TenantID string `json:"tenant_id,omitempty"`
-//		Count int `json:"count,omitempty"`
-//	}
-//
-//	client.TenantMixin.Query().
-//		GroupBy(tenantmixin.FieldTenantID).
-//		Aggregate(ent.Count()).
-//		Scan(ctx, &v)
-func (_q *TenantMixinQuery) GroupBy(field string, fields ...string) *TenantMixinGroupBy {
+func (_q *CourseModulesQuery) GroupBy(field string, fields ...string) *CourseModulesGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &TenantMixinGroupBy{build: _q}
+	grbuild := &CourseModulesGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = tenantmixin.Label
+	grbuild.label = coursemodules.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
-//
-// Example:
-//
-//	var v []struct {
-//		TenantID string `json:"tenant_id,omitempty"`
-//	}
-//
-//	client.TenantMixin.Query().
-//		Select(tenantmixin.FieldTenantID).
-//		Scan(ctx, &v)
-func (_q *TenantMixinQuery) Select(fields ...string) *TenantMixinSelect {
+func (_q *CourseModulesQuery) Select(fields ...string) *CourseModulesSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &TenantMixinSelect{TenantMixinQuery: _q}
-	sbuild.label = tenantmixin.Label
+	sbuild := &CourseModulesSelect{CourseModulesQuery: _q}
+	sbuild.label = coursemodules.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a TenantMixinSelect configured with the given aggregations.
-func (_q *TenantMixinQuery) Aggregate(fns ...AggregateFunc) *TenantMixinSelect {
+// Aggregate returns a CourseModulesSelect configured with the given aggregations.
+func (_q *CourseModulesQuery) Aggregate(fns ...AggregateFunc) *CourseModulesSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *TenantMixinQuery) prepareQuery(ctx context.Context) error {
+func (_q *CourseModulesQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -316,7 +294,7 @@ func (_q *TenantMixinQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !tenantmixin.ValidColumn(f) {
+		if !coursemodules.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -330,16 +308,16 @@ func (_q *TenantMixinQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *TenantMixinQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*TenantMixin, error) {
+func (_q *CourseModulesQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*CourseModules, error) {
 	var (
-		nodes = []*TenantMixin{}
+		nodes = []*CourseModules{}
 		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*TenantMixin).scanValues(nil, columns)
+		return (*CourseModules).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &TenantMixin{config: _q.config}
+		node := &CourseModules{config: _q.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
 	}
@@ -355,7 +333,7 @@ func (_q *TenantMixinQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	return nodes, nil
 }
 
-func (_q *TenantMixinQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *CourseModulesQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -364,8 +342,8 @@ func (_q *TenantMixinQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *TenantMixinQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(tenantmixin.Table, tenantmixin.Columns, sqlgraph.NewFieldSpec(tenantmixin.FieldID, field.TypeInt))
+func (_q *CourseModulesQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(coursemodules.Table, coursemodules.Columns, sqlgraph.NewFieldSpec(coursemodules.FieldID, field.TypeString))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -374,9 +352,9 @@ func (_q *TenantMixinQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, tenantmixin.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, coursemodules.FieldID)
 		for i := range fields {
-			if fields[i] != tenantmixin.FieldID {
+			if fields[i] != coursemodules.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
@@ -404,12 +382,12 @@ func (_q *TenantMixinQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *TenantMixinQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *CourseModulesQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(tenantmixin.Table)
+	t1 := builder.Table(coursemodules.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = tenantmixin.Columns
+		columns = coursemodules.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -436,28 +414,28 @@ func (_q *TenantMixinQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// TenantMixinGroupBy is the group-by builder for TenantMixin entities.
-type TenantMixinGroupBy struct {
+// CourseModulesGroupBy is the group-by builder for CourseModules entities.
+type CourseModulesGroupBy struct {
 	selector
-	build *TenantMixinQuery
+	build *CourseModulesQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *TenantMixinGroupBy) Aggregate(fns ...AggregateFunc) *TenantMixinGroupBy {
+func (_g *CourseModulesGroupBy) Aggregate(fns ...AggregateFunc) *CourseModulesGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *TenantMixinGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *CourseModulesGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*TenantMixinQuery, *TenantMixinGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*CourseModulesQuery, *CourseModulesGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *TenantMixinGroupBy) sqlScan(ctx context.Context, root *TenantMixinQuery, v any) error {
+func (_g *CourseModulesGroupBy) sqlScan(ctx context.Context, root *CourseModulesQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -484,28 +462,28 @@ func (_g *TenantMixinGroupBy) sqlScan(ctx context.Context, root *TenantMixinQuer
 	return sql.ScanSlice(rows, v)
 }
 
-// TenantMixinSelect is the builder for selecting fields of TenantMixin entities.
-type TenantMixinSelect struct {
-	*TenantMixinQuery
+// CourseModulesSelect is the builder for selecting fields of CourseModules entities.
+type CourseModulesSelect struct {
+	*CourseModulesQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *TenantMixinSelect) Aggregate(fns ...AggregateFunc) *TenantMixinSelect {
+func (_s *CourseModulesSelect) Aggregate(fns ...AggregateFunc) *CourseModulesSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *TenantMixinSelect) Scan(ctx context.Context, v any) error {
+func (_s *CourseModulesSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*TenantMixinQuery, *TenantMixinSelect](ctx, _s.TenantMixinQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*CourseModulesQuery, *CourseModulesSelect](ctx, _s.CourseModulesQuery, _s, _s.inters, v)
 }
 
-func (_s *TenantMixinSelect) sqlScan(ctx context.Context, root *TenantMixinQuery, v any) error {
+func (_s *CourseModulesSelect) sqlScan(ctx context.Context, root *CourseModulesQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"hexagonal-go-backend/internal/ent/coursetemplates"
+	"hexagonal-go-backend/internal/ent/courseversions"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -18,12 +19,6 @@ type CourseTemplatesCreate struct {
 	config
 	mutation *CourseTemplatesMutation
 	hooks    []Hook
-}
-
-// SetTenantID sets the "tenant_id" field.
-func (_c *CourseTemplatesCreate) SetTenantID(v string) *CourseTemplatesCreate {
-	_c.mutation.SetTenantID(v)
-	return _c
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -86,6 +81,29 @@ func (_c *CourseTemplatesCreate) SetID(v string) *CourseTemplatesCreate {
 	return _c
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (_c *CourseTemplatesCreate) SetNillableID(v *string) *CourseTemplatesCreate {
+	if v != nil {
+		_c.SetID(*v)
+	}
+	return _c
+}
+
+// AddVersionIDs adds the "versions" edge to the CourseVersions entity by IDs.
+func (_c *CourseTemplatesCreate) AddVersionIDs(ids ...string) *CourseTemplatesCreate {
+	_c.mutation.AddVersionIDs(ids...)
+	return _c
+}
+
+// AddVersions adds the "versions" edges to the CourseVersions entity.
+func (_c *CourseTemplatesCreate) AddVersions(v ...*CourseVersions) *CourseTemplatesCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddVersionIDs(ids...)
+}
+
 // Mutation returns the CourseTemplatesMutation object of the builder.
 func (_c *CourseTemplatesCreate) Mutation() *CourseTemplatesMutation {
 	return _c.mutation
@@ -122,7 +140,7 @@ func (_c *CourseTemplatesCreate) ExecX(ctx context.Context) {
 // defaults sets the default values of the builder before save.
 func (_c *CourseTemplatesCreate) defaults() {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
-		v := coursetemplates.DefaultCreatedAt
+		v := coursetemplates.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
@@ -133,18 +151,14 @@ func (_c *CourseTemplatesCreate) defaults() {
 		v := coursetemplates.DefaultDescription
 		_c.mutation.SetDescription(v)
 	}
+	if _, ok := _c.mutation.ID(); !ok {
+		v := coursetemplates.DefaultID()
+		_c.mutation.SetID(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *CourseTemplatesCreate) check() error {
-	if _, ok := _c.mutation.TenantID(); !ok {
-		return &ValidationError{Name: "tenant_id", err: errors.New(`ent: missing required field "CourseTemplates.tenant_id"`)}
-	}
-	if v, ok := _c.mutation.TenantID(); ok {
-		if err := coursetemplates.TenantIDValidator(v); err != nil {
-			return &ValidationError{Name: "tenant_id", err: fmt.Errorf(`ent: validator failed for field "CourseTemplates.tenant_id": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "CourseTemplates.created_at"`)}
 	}
@@ -170,6 +184,11 @@ func (_c *CourseTemplatesCreate) check() error {
 	if v, ok := _c.mutation.Description(); ok {
 		if err := coursetemplates.DescriptionValidator(v); err != nil {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "CourseTemplates.description": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.ID(); ok {
+		if err := coursetemplates.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "CourseTemplates.id": %w`, err)}
 		}
 	}
 	return nil
@@ -207,10 +226,6 @@ func (_c *CourseTemplatesCreate) createSpec() (*CourseTemplates, *sqlgraph.Creat
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := _c.mutation.TenantID(); ok {
-		_spec.SetField(coursetemplates.FieldTenantID, field.TypeString, value)
-		_node.TenantID = value
-	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(coursetemplates.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -230,6 +245,22 @@ func (_c *CourseTemplatesCreate) createSpec() (*CourseTemplates, *sqlgraph.Creat
 	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(coursetemplates.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if nodes := _c.mutation.VersionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   coursetemplates.VersionsTable,
+			Columns: []string{coursetemplates.VersionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(courseversions.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

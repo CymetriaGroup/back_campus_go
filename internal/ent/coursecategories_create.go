@@ -92,6 +92,14 @@ func (_c *CourseCategoriesCreate) SetID(v string) *CourseCategoriesCreate {
 	return _c
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (_c *CourseCategoriesCreate) SetNillableID(v *string) *CourseCategoriesCreate {
+	if v != nil {
+		_c.SetID(*v)
+	}
+	return _c
+}
+
 // Mutation returns the CourseCategoriesMutation object of the builder.
 func (_c *CourseCategoriesCreate) Mutation() *CourseCategoriesMutation {
 	return _c.mutation
@@ -128,7 +136,7 @@ func (_c *CourseCategoriesCreate) ExecX(ctx context.Context) {
 // defaults sets the default values of the builder before save.
 func (_c *CourseCategoriesCreate) defaults() {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
-		v := coursecategories.DefaultCreatedAt
+		v := coursecategories.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
@@ -138,6 +146,10 @@ func (_c *CourseCategoriesCreate) defaults() {
 	if _, ok := _c.mutation.Description(); !ok {
 		v := coursecategories.DefaultDescription
 		_c.mutation.SetDescription(v)
+	}
+	if _, ok := _c.mutation.ID(); !ok {
+		v := coursecategories.DefaultID()
+		_c.mutation.SetID(v)
 	}
 }
 
@@ -179,6 +191,11 @@ func (_c *CourseCategoriesCreate) check() error {
 	if v, ok := _c.mutation.ParentID(); ok {
 		if err := coursecategories.ParentIDValidator(v); err != nil {
 			return &ValidationError{Name: "parent_id", err: fmt.Errorf(`ent: validator failed for field "CourseCategories.parent_id": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.ID(); ok {
+		if err := coursecategories.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "CourseCategories.id": %w`, err)}
 		}
 	}
 	return nil

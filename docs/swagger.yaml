@@ -1,0 +1,17 @@
+basePath: /api/v1
+host: localhost:8080
+info:
+  contact:
+    email: soporte@empresa.com
+    name: API Support
+  description: API REST construida con Go, Gin y Arquitectura Hexagonal.
+  title: Go Hexagonal API
+  version: "1.0"
+paths: {}
+securityDefinitions:
+  BearerAuth:
+    description: Escribe "Bearer " seguido de tu token JWT
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

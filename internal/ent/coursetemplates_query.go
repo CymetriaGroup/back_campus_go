@@ -4,8 +4,10 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"hexagonal-go-backend/internal/ent/coursetemplates"
+	"hexagonal-go-backend/internal/ent/courseversions"
 	"hexagonal-go-backend/internal/ent/predicate"
 	"math"
 
@@ -18,10 +20,11 @@ import (
 // CourseTemplatesQuery is the builder for querying CourseTemplates entities.
 type CourseTemplatesQuery struct {
 	config
-	ctx        *QueryContext
-	order      []coursetemplates.OrderOption
-	inters     []Interceptor
-	predicates []predicate.CourseTemplates
+	ctx          *QueryContext
+	order        []coursetemplates.OrderOption
+	inters       []Interceptor
+	predicates   []predicate.CourseTemplates
+	withVersions *CourseVersionsQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +59,28 @@ func (_q *CourseTemplatesQuery) Unique(unique bool) *CourseTemplatesQuery {
 func (_q *CourseTemplatesQuery) Order(o ...coursetemplates.OrderOption) *CourseTemplatesQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QueryVersions chains the current query on the "versions" edge.
+func (_q *CourseTemplatesQuery) QueryVersions() *CourseVersionsQuery {
+	query := (&CourseVersionsClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(coursetemplates.Table, coursetemplates.FieldID, selector),
+			sqlgraph.To(courseversions.Table, courseversions.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, coursetemplates.VersionsTable, coursetemplates.VersionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first CourseTemplates entity from the query.
@@ -245,15 +270,27 @@ func (_q *CourseTemplatesQuery) Clone() *CourseTemplatesQuery {
 		return nil
 	}
 	return &CourseTemplatesQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]coursetemplates.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.CourseTemplates{}, _q.predicates...),
+		config:       _q.config,
+		ctx:          _q.ctx.Clone(),
+		order:        append([]coursetemplates.OrderOption{}, _q.order...),
+		inters:       append([]Interceptor{}, _q.inters...),
+		predicates:   append([]predicate.CourseTemplates{}, _q.predicates...),
+		withVersions: _q.withVersions.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithVersions tells the query-builder to eager-load the nodes that are connected to
+// the "versions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CourseTemplatesQuery) WithVersions(opts ...func(*CourseVersionsQuery)) *CourseTemplatesQuery {
+	query := (&CourseVersionsClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withVersions = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -262,12 +299,12 @@ func (_q *CourseTemplatesQuery) Clone() *CourseTemplatesQuery {
 // Example:
 //
 //	var v []struct {
-//		TenantID string `json:"tenant_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.CourseTemplates.Query().
-//		GroupBy(coursetemplates.FieldTenantID).
+//		GroupBy(coursetemplates.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *CourseTemplatesQuery) GroupBy(field string, fields ...string) *CourseTemplatesGroupBy {
@@ -285,11 +322,11 @@ func (_q *CourseTemplatesQuery) GroupBy(field string, fields ...string) *CourseT
 // Example:
 //
 //	var v []struct {
-//		TenantID string `json:"tenant_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.CourseTemplates.Query().
-//		Select(coursetemplates.FieldTenantID).
+//		Select(coursetemplates.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (_q *CourseTemplatesQuery) Select(fields ...string) *CourseTemplatesSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -332,8 +369,11 @@ func (_q *CourseTemplatesQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *CourseTemplatesQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*CourseTemplates, error) {
 	var (
-		nodes = []*CourseTemplates{}
-		_spec = _q.querySpec()
+		nodes       = []*CourseTemplates{}
+		_spec       = _q.querySpec()
+		loadedTypes = [1]bool{
+			_q.withVersions != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*CourseTemplates).scanValues(nil, columns)
@@ -341,6 +381,7 @@ func (_q *CourseTemplatesQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &CourseTemplates{config: _q.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +393,45 @@ func (_q *CourseTemplatesQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withVersions; query != nil {
+		if err := _q.loadVersions(ctx, query, nodes,
+			func(n *CourseTemplates) { n.Edges.Versions = []*CourseVersions{} },
+			func(n *CourseTemplates, e *CourseVersions) { n.Edges.Versions = append(n.Edges.Versions, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (_q *CourseTemplatesQuery) loadVersions(ctx context.Context, query *CourseVersionsQuery, nodes []*CourseTemplates, init func(*CourseTemplates), assign func(*CourseTemplates, *CourseVersions)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*CourseTemplates)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(courseversions.FieldTemplateID)
+	}
+	query.Where(predicate.CourseVersions(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(coursetemplates.VersionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TemplateID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "template_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (_q *CourseTemplatesQuery) sqlCount(ctx context.Context) (int, error) {

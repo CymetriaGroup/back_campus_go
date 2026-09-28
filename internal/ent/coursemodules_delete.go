@@ -4,34 +4,34 @@ package ent
 
 import (
 	"context"
+	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/predicate"
-	"hexagonal-go-backend/internal/ent/timemixin"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
 
-// TimeMixinDelete is the builder for deleting a TimeMixin entity.
-type TimeMixinDelete struct {
+// CourseModulesDelete is the builder for deleting a CourseModules entity.
+type CourseModulesDelete struct {
 	config
 	hooks    []Hook
-	mutation *TimeMixinMutation
+	mutation *CourseModulesMutation
 }
 
-// Where appends a list predicates to the TimeMixinDelete builder.
-func (_d *TimeMixinDelete) Where(ps ...predicate.TimeMixin) *TimeMixinDelete {
+// Where appends a list predicates to the CourseModulesDelete builder.
+func (_d *CourseModulesDelete) Where(ps ...predicate.CourseModules) *CourseModulesDelete {
 	_d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (_d *TimeMixinDelete) Exec(ctx context.Context) (int, error) {
+func (_d *CourseModulesDelete) Exec(ctx context.Context) (int, error) {
 	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *TimeMixinDelete) ExecX(ctx context.Context) int {
+func (_d *CourseModulesDelete) ExecX(ctx context.Context) int {
 	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
@@ -39,8 +39,8 @@ func (_d *TimeMixinDelete) ExecX(ctx context.Context) int {
 	return n
 }
 
-func (_d *TimeMixinDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(timemixin.Table, sqlgraph.NewFieldSpec(timemixin.FieldID, field.TypeInt))
+func (_d *CourseModulesDelete) sqlExec(ctx context.Context) (int, error) {
+	_spec := sqlgraph.NewDeleteSpec(coursemodules.Table, sqlgraph.NewFieldSpec(coursemodules.FieldID, field.TypeString))
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -56,32 +56,32 @@ func (_d *TimeMixinDelete) sqlExec(ctx context.Context) (int, error) {
 	return affected, err
 }
 
-// TimeMixinDeleteOne is the builder for deleting a single TimeMixin entity.
-type TimeMixinDeleteOne struct {
-	_d *TimeMixinDelete
+// CourseModulesDeleteOne is the builder for deleting a single CourseModules entity.
+type CourseModulesDeleteOne struct {
+	_d *CourseModulesDelete
 }
 
-// Where appends a list predicates to the TimeMixinDelete builder.
-func (_d *TimeMixinDeleteOne) Where(ps ...predicate.TimeMixin) *TimeMixinDeleteOne {
+// Where appends a list predicates to the CourseModulesDelete builder.
+func (_d *CourseModulesDeleteOne) Where(ps ...predicate.CourseModules) *CourseModulesDeleteOne {
 	_d._d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query.
-func (_d *TimeMixinDeleteOne) Exec(ctx context.Context) error {
+func (_d *CourseModulesDeleteOne) Exec(ctx context.Context) error {
 	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{timemixin.Label}
+		return &NotFoundError{coursemodules.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *TimeMixinDeleteOne) ExecX(ctx context.Context) {
+func (_d *CourseModulesDeleteOne) ExecX(ctx context.Context) {
 	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}

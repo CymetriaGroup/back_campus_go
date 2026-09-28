@@ -9,14 +9,17 @@ import (
 // CourseCategories is the predicate function for coursecategories builders.
 type CourseCategories func(*sql.Selector)
 
+// CourseModules is the predicate function for coursemodules builders.
+type CourseModules func(*sql.Selector)
+
 // CourseTemplates is the predicate function for coursetemplates builders.
 type CourseTemplates func(*sql.Selector)
 
-// TenantMixin is the predicate function for tenantmixin builders.
-type TenantMixin func(*sql.Selector)
+// CourseVersions is the predicate function for courseversions builders.
+type CourseVersions func(*sql.Selector)
 
-// TimeMixin is the predicate function for timemixin builders.
-type TimeMixin func(*sql.Selector)
+// Syllabi is the predicate function for syllabi builders.
+type Syllabi func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
