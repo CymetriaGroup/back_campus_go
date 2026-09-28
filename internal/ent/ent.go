@@ -10,6 +10,7 @@ import (
 	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/coursetemplates"
 	"hexagonal-go-backend/internal/ent/courseversions"
+	"hexagonal-go-backend/internal/ent/lessons"
 	"hexagonal-go-backend/internal/ent/syllabi"
 	"hexagonal-go-backend/internal/ent/user"
 	"reflect"
@@ -82,6 +83,7 @@ func checkColumn(t, c string) error {
 			coursemodules.Table:    coursemodules.ValidColumn,
 			coursetemplates.Table:  coursetemplates.ValidColumn,
 			courseversions.Table:   courseversions.ValidColumn,
+			lessons.Table:          lessons.ValidColumn,
 			syllabi.Table:          syllabi.ValidColumn,
 			user.Table:             user.ValidColumn,
 		})

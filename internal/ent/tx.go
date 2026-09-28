@@ -20,6 +20,8 @@ type Tx struct {
 	CourseTemplates *CourseTemplatesClient
 	// CourseVersions is the client for interacting with the CourseVersions builders.
 	CourseVersions *CourseVersionsClient
+	// Lessons is the client for interacting with the Lessons builders.
+	Lessons *LessonsClient
 	// Syllabi is the client for interacting with the Syllabi builders.
 	Syllabi *SyllabiClient
 	// User is the client for interacting with the User builders.
@@ -159,6 +161,7 @@ func (tx *Tx) init() {
 	tx.CourseModules = NewCourseModulesClient(tx.config)
 	tx.CourseTemplates = NewCourseTemplatesClient(tx.config)
 	tx.CourseVersions = NewCourseVersionsClient(tx.config)
+	tx.Lessons = NewLessonsClient(tx.config)
 	tx.Syllabi = NewSyllabiClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }

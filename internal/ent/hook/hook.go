@@ -56,6 +56,18 @@ func (f CourseVersionsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CourseVersionsMutation", m)
 }
 
+// The LessonsFunc type is an adapter to allow the use of ordinary
+// function as Lessons mutator.
+type LessonsFunc func(context.Context, *ent.LessonsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LessonsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LessonsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LessonsMutation", m)
+}
+
 // The SyllabiFunc type is an adapter to allow the use of ordinary
 // function as Syllabi mutator.
 type SyllabiFunc func(context.Context, *ent.SyllabiMutation) (ent.Value, error)

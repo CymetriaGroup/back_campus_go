@@ -28,6 +28,11 @@ var (
 	// CourseModulesColumns holds the columns for the "course_modules" table.
 	CourseModulesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Size: 26},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "version_id", Type: field.TypeString, Unique: true},
+		{Name: "title", Type: field.TypeString},
+		{Name: "sequence_order", Type: field.TypeInt},
 	}
 	// CourseModulesTable holds the schema information for the "course_modules" table.
 	CourseModulesTable = &schema.Table{
@@ -73,6 +78,16 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 		},
+	}
+	// LessonsColumns holds the columns for the "lessons" table.
+	LessonsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+	}
+	// LessonsTable holds the schema information for the "lessons" table.
+	LessonsTable = &schema.Table{
+		Name:       "lessons",
+		Columns:    LessonsColumns,
+		PrimaryKey: []*schema.Column{LessonsColumns[0]},
 	}
 	// SyllabisColumns holds the columns for the "syllabis" table.
 	SyllabisColumns = []*schema.Column{
@@ -135,6 +150,7 @@ var (
 		CourseModulesTable,
 		CourseTemplatesTable,
 		CourseVersionsTable,
+		LessonsTable,
 		SyllabisTable,
 		UsersTable,
 	}

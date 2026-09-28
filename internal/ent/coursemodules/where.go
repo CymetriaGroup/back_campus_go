@@ -4,6 +4,7 @@ package coursemodules
 
 import (
 	"hexagonal-go-backend/internal/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 )
@@ -61,6 +62,281 @@ func IDEqualFold(id string) predicate.CourseModules {
 // IDContainsFold applies the ContainsFold predicate on the ID field.
 func IDContainsFold(id string) predicate.CourseModules {
 	return predicate.CourseModules(sql.FieldContainsFold(FieldID, id))
+}
+
+// CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
+func CreatedAt(v time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
+func UpdatedAt(v time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// VersionID applies equality check predicate on the "version_id" field. It's identical to VersionIDEQ.
+func VersionID(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldEQ(FieldVersionID, v))
+}
+
+// Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
+func Title(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldEQ(FieldTitle, v))
+}
+
+// SequenceOrder applies equality check predicate on the "sequence_order" field. It's identical to SequenceOrderEQ.
+func SequenceOrder(v int) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldEQ(FieldSequenceOrder, v))
+}
+
+// CreatedAtEQ applies the EQ predicate on the "created_at" field.
+func CreatedAtEQ(v time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
+func CreatedAtNEQ(v time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldNEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtIn applies the In predicate on the "created_at" field.
+func CreatedAtIn(vs ...time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
+func CreatedAtNotIn(vs ...time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldNotIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtGT applies the GT predicate on the "created_at" field.
+func CreatedAtGT(v time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldGT(FieldCreatedAt, v))
+}
+
+// CreatedAtGTE applies the GTE predicate on the "created_at" field.
+func CreatedAtGTE(v time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldGTE(FieldCreatedAt, v))
+}
+
+// CreatedAtLT applies the LT predicate on the "created_at" field.
+func CreatedAtLT(v time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldLT(FieldCreatedAt, v))
+}
+
+// CreatedAtLTE applies the LTE predicate on the "created_at" field.
+func CreatedAtLTE(v time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldLTE(FieldCreatedAt, v))
+}
+
+// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
+func UpdatedAtEQ(v time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
+func UpdatedAtNEQ(v time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldNEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtIn applies the In predicate on the "updated_at" field.
+func UpdatedAtIn(vs ...time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
+func UpdatedAtNotIn(vs ...time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldNotIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtGT applies the GT predicate on the "updated_at" field.
+func UpdatedAtGT(v time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldGT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
+func UpdatedAtGTE(v time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldGTE(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLT applies the LT predicate on the "updated_at" field.
+func UpdatedAtLT(v time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldLT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
+func UpdatedAtLTE(v time.Time) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// VersionIDEQ applies the EQ predicate on the "version_id" field.
+func VersionIDEQ(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldEQ(FieldVersionID, v))
+}
+
+// VersionIDNEQ applies the NEQ predicate on the "version_id" field.
+func VersionIDNEQ(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldNEQ(FieldVersionID, v))
+}
+
+// VersionIDIn applies the In predicate on the "version_id" field.
+func VersionIDIn(vs ...string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldIn(FieldVersionID, vs...))
+}
+
+// VersionIDNotIn applies the NotIn predicate on the "version_id" field.
+func VersionIDNotIn(vs ...string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldNotIn(FieldVersionID, vs...))
+}
+
+// VersionIDGT applies the GT predicate on the "version_id" field.
+func VersionIDGT(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldGT(FieldVersionID, v))
+}
+
+// VersionIDGTE applies the GTE predicate on the "version_id" field.
+func VersionIDGTE(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldGTE(FieldVersionID, v))
+}
+
+// VersionIDLT applies the LT predicate on the "version_id" field.
+func VersionIDLT(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldLT(FieldVersionID, v))
+}
+
+// VersionIDLTE applies the LTE predicate on the "version_id" field.
+func VersionIDLTE(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldLTE(FieldVersionID, v))
+}
+
+// VersionIDContains applies the Contains predicate on the "version_id" field.
+func VersionIDContains(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldContains(FieldVersionID, v))
+}
+
+// VersionIDHasPrefix applies the HasPrefix predicate on the "version_id" field.
+func VersionIDHasPrefix(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldHasPrefix(FieldVersionID, v))
+}
+
+// VersionIDHasSuffix applies the HasSuffix predicate on the "version_id" field.
+func VersionIDHasSuffix(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldHasSuffix(FieldVersionID, v))
+}
+
+// VersionIDEqualFold applies the EqualFold predicate on the "version_id" field.
+func VersionIDEqualFold(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldEqualFold(FieldVersionID, v))
+}
+
+// VersionIDContainsFold applies the ContainsFold predicate on the "version_id" field.
+func VersionIDContainsFold(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldContainsFold(FieldVersionID, v))
+}
+
+// TitleEQ applies the EQ predicate on the "title" field.
+func TitleEQ(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldEQ(FieldTitle, v))
+}
+
+// TitleNEQ applies the NEQ predicate on the "title" field.
+func TitleNEQ(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldNEQ(FieldTitle, v))
+}
+
+// TitleIn applies the In predicate on the "title" field.
+func TitleIn(vs ...string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldIn(FieldTitle, vs...))
+}
+
+// TitleNotIn applies the NotIn predicate on the "title" field.
+func TitleNotIn(vs ...string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldNotIn(FieldTitle, vs...))
+}
+
+// TitleGT applies the GT predicate on the "title" field.
+func TitleGT(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldGT(FieldTitle, v))
+}
+
+// TitleGTE applies the GTE predicate on the "title" field.
+func TitleGTE(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldGTE(FieldTitle, v))
+}
+
+// TitleLT applies the LT predicate on the "title" field.
+func TitleLT(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldLT(FieldTitle, v))
+}
+
+// TitleLTE applies the LTE predicate on the "title" field.
+func TitleLTE(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldLTE(FieldTitle, v))
+}
+
+// TitleContains applies the Contains predicate on the "title" field.
+func TitleContains(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldContains(FieldTitle, v))
+}
+
+// TitleHasPrefix applies the HasPrefix predicate on the "title" field.
+func TitleHasPrefix(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldHasPrefix(FieldTitle, v))
+}
+
+// TitleHasSuffix applies the HasSuffix predicate on the "title" field.
+func TitleHasSuffix(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldHasSuffix(FieldTitle, v))
+}
+
+// TitleEqualFold applies the EqualFold predicate on the "title" field.
+func TitleEqualFold(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldEqualFold(FieldTitle, v))
+}
+
+// TitleContainsFold applies the ContainsFold predicate on the "title" field.
+func TitleContainsFold(v string) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldContainsFold(FieldTitle, v))
+}
+
+// SequenceOrderEQ applies the EQ predicate on the "sequence_order" field.
+func SequenceOrderEQ(v int) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldEQ(FieldSequenceOrder, v))
+}
+
+// SequenceOrderNEQ applies the NEQ predicate on the "sequence_order" field.
+func SequenceOrderNEQ(v int) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldNEQ(FieldSequenceOrder, v))
+}
+
+// SequenceOrderIn applies the In predicate on the "sequence_order" field.
+func SequenceOrderIn(vs ...int) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldIn(FieldSequenceOrder, vs...))
+}
+
+// SequenceOrderNotIn applies the NotIn predicate on the "sequence_order" field.
+func SequenceOrderNotIn(vs ...int) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldNotIn(FieldSequenceOrder, vs...))
+}
+
+// SequenceOrderGT applies the GT predicate on the "sequence_order" field.
+func SequenceOrderGT(v int) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldGT(FieldSequenceOrder, v))
+}
+
+// SequenceOrderGTE applies the GTE predicate on the "sequence_order" field.
+func SequenceOrderGTE(v int) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldGTE(FieldSequenceOrder, v))
+}
+
+// SequenceOrderLT applies the LT predicate on the "sequence_order" field.
+func SequenceOrderLT(v int) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldLT(FieldSequenceOrder, v))
+}
+
+// SequenceOrderLTE applies the LTE predicate on the "sequence_order" field.
+func SequenceOrderLTE(v int) predicate.CourseModules {
+	return predicate.CourseModules(sql.FieldLTE(FieldSequenceOrder, v))
 }
 
 // And groups predicates with the AND operator between them.

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hexagonal-go-backend/internal/ent/coursemodules"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -13,10 +14,20 @@ import (
 
 // CourseModules is the model entity for the CourseModules schema.
 type CourseModules struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
-	ID           string `json:"id,omitempty"`
-	selectValues sql.SelectValues
+	ID string `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// VersionID holds the value of the "version_id" field.
+	VersionID string `json:"version_id,omitempty"`
+	// Title holds the value of the "title" field.
+	Title string `json:"title,omitempty"`
+	// SequenceOrder holds the value of the "sequence_order" field.
+	SequenceOrder int `json:"sequence_order,omitempty"`
+	selectValues  sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -24,8 +35,12 @@ func (*CourseModules) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case coursemodules.FieldID:
+		case coursemodules.FieldSequenceOrder:
+			values[i] = new(sql.NullInt64)
+		case coursemodules.FieldID, coursemodules.FieldVersionID, coursemodules.FieldTitle:
 			values[i] = new(sql.NullString)
+		case coursemodules.FieldCreatedAt, coursemodules.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -46,6 +61,36 @@ func (_m *CourseModules) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
 				_m.ID = value.String
+			}
+		case coursemodules.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				_m.CreatedAt = value.Time
+			}
+		case coursemodules.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				_m.UpdatedAt = value.Time
+			}
+		case coursemodules.FieldVersionID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field version_id", values[i])
+			} else if value.Valid {
+				_m.VersionID = value.String
+			}
+		case coursemodules.FieldTitle:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field title", values[i])
+			} else if value.Valid {
+				_m.Title = value.String
+			}
+		case coursemodules.FieldSequenceOrder:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field sequence_order", values[i])
+			} else if value.Valid {
+				_m.SequenceOrder = int(value.Int64)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -82,7 +127,21 @@ func (_m *CourseModules) Unwrap() *CourseModules {
 func (_m *CourseModules) String() string {
 	var builder strings.Builder
 	builder.WriteString("CourseModules(")
-	builder.WriteString(fmt.Sprintf("id=%v", _m.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("version_id=")
+	builder.WriteString(_m.VersionID)
+	builder.WriteString(", ")
+	builder.WriteString("title=")
+	builder.WriteString(_m.Title)
+	builder.WriteString(", ")
+	builder.WriteString("sequence_order=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SequenceOrder))
 	builder.WriteByte(')')
 	return builder.String()
 }

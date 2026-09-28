@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -27,6 +28,61 @@ func (_u *CourseModulesUpdate) Where(ps ...predicate.CourseModules) *CourseModul
 	return _u
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (_u *CourseModulesUpdate) SetUpdatedAt(v time.Time) *CourseModulesUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetVersionID sets the "version_id" field.
+func (_u *CourseModulesUpdate) SetVersionID(v string) *CourseModulesUpdate {
+	_u.mutation.SetVersionID(v)
+	return _u
+}
+
+// SetNillableVersionID sets the "version_id" field if the given value is not nil.
+func (_u *CourseModulesUpdate) SetNillableVersionID(v *string) *CourseModulesUpdate {
+	if v != nil {
+		_u.SetVersionID(*v)
+	}
+	return _u
+}
+
+// SetTitle sets the "title" field.
+func (_u *CourseModulesUpdate) SetTitle(v string) *CourseModulesUpdate {
+	_u.mutation.SetTitle(v)
+	return _u
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (_u *CourseModulesUpdate) SetNillableTitle(v *string) *CourseModulesUpdate {
+	if v != nil {
+		_u.SetTitle(*v)
+	}
+	return _u
+}
+
+// SetSequenceOrder sets the "sequence_order" field.
+func (_u *CourseModulesUpdate) SetSequenceOrder(v int) *CourseModulesUpdate {
+	_u.mutation.ResetSequenceOrder()
+	_u.mutation.SetSequenceOrder(v)
+	return _u
+}
+
+// SetNillableSequenceOrder sets the "sequence_order" field if the given value is not nil.
+func (_u *CourseModulesUpdate) SetNillableSequenceOrder(v *int) *CourseModulesUpdate {
+	if v != nil {
+		_u.SetSequenceOrder(*v)
+	}
+	return _u
+}
+
+// AddSequenceOrder adds value to the "sequence_order" field.
+func (_u *CourseModulesUpdate) AddSequenceOrder(v int) *CourseModulesUpdate {
+	_u.mutation.AddSequenceOrder(v)
+	return _u
+}
+
 // Mutation returns the CourseModulesMutation object of the builder.
 func (_u *CourseModulesUpdate) Mutation() *CourseModulesMutation {
 	return _u.mutation
@@ -34,6 +90,7 @@ func (_u *CourseModulesUpdate) Mutation() *CourseModulesMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *CourseModulesUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -59,7 +116,33 @@ func (_u *CourseModulesUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_u *CourseModulesUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := coursemodules.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (_u *CourseModulesUpdate) check() error {
+	if v, ok := _u.mutation.Title(); ok {
+		if err := coursemodules.TitleValidator(v); err != nil {
+			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "CourseModules.title": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.SequenceOrder(); ok {
+		if err := coursemodules.SequenceOrderValidator(v); err != nil {
+			return &ValidationError{Name: "sequence_order", err: fmt.Errorf(`ent: validator failed for field "CourseModules.sequence_order": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *CourseModulesUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(coursemodules.Table, coursemodules.Columns, sqlgraph.NewFieldSpec(coursemodules.FieldID, field.TypeString))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -67,6 +150,21 @@ func (_u *CourseModulesUpdate) sqlSave(ctx context.Context) (_node int, err erro
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(coursemodules.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.VersionID(); ok {
+		_spec.SetField(coursemodules.FieldVersionID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Title(); ok {
+		_spec.SetField(coursemodules.FieldTitle, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SequenceOrder(); ok {
+		_spec.SetField(coursemodules.FieldSequenceOrder, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSequenceOrder(); ok {
+		_spec.AddField(coursemodules.FieldSequenceOrder, field.TypeInt, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -86,6 +184,61 @@ type CourseModulesUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *CourseModulesMutation
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (_u *CourseModulesUpdateOne) SetUpdatedAt(v time.Time) *CourseModulesUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetVersionID sets the "version_id" field.
+func (_u *CourseModulesUpdateOne) SetVersionID(v string) *CourseModulesUpdateOne {
+	_u.mutation.SetVersionID(v)
+	return _u
+}
+
+// SetNillableVersionID sets the "version_id" field if the given value is not nil.
+func (_u *CourseModulesUpdateOne) SetNillableVersionID(v *string) *CourseModulesUpdateOne {
+	if v != nil {
+		_u.SetVersionID(*v)
+	}
+	return _u
+}
+
+// SetTitle sets the "title" field.
+func (_u *CourseModulesUpdateOne) SetTitle(v string) *CourseModulesUpdateOne {
+	_u.mutation.SetTitle(v)
+	return _u
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (_u *CourseModulesUpdateOne) SetNillableTitle(v *string) *CourseModulesUpdateOne {
+	if v != nil {
+		_u.SetTitle(*v)
+	}
+	return _u
+}
+
+// SetSequenceOrder sets the "sequence_order" field.
+func (_u *CourseModulesUpdateOne) SetSequenceOrder(v int) *CourseModulesUpdateOne {
+	_u.mutation.ResetSequenceOrder()
+	_u.mutation.SetSequenceOrder(v)
+	return _u
+}
+
+// SetNillableSequenceOrder sets the "sequence_order" field if the given value is not nil.
+func (_u *CourseModulesUpdateOne) SetNillableSequenceOrder(v *int) *CourseModulesUpdateOne {
+	if v != nil {
+		_u.SetSequenceOrder(*v)
+	}
+	return _u
+}
+
+// AddSequenceOrder adds value to the "sequence_order" field.
+func (_u *CourseModulesUpdateOne) AddSequenceOrder(v int) *CourseModulesUpdateOne {
+	_u.mutation.AddSequenceOrder(v)
+	return _u
 }
 
 // Mutation returns the CourseModulesMutation object of the builder.
@@ -108,6 +261,7 @@ func (_u *CourseModulesUpdateOne) Select(field string, fields ...string) *Course
 
 // Save executes the query and returns the updated CourseModules entity.
 func (_u *CourseModulesUpdateOne) Save(ctx context.Context) (*CourseModules, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -133,7 +287,33 @@ func (_u *CourseModulesUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_u *CourseModulesUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := coursemodules.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (_u *CourseModulesUpdateOne) check() error {
+	if v, ok := _u.mutation.Title(); ok {
+		if err := coursemodules.TitleValidator(v); err != nil {
+			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "CourseModules.title": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.SequenceOrder(); ok {
+		if err := coursemodules.SequenceOrderValidator(v); err != nil {
+			return &ValidationError{Name: "sequence_order", err: fmt.Errorf(`ent: validator failed for field "CourseModules.sequence_order": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *CourseModulesUpdateOne) sqlSave(ctx context.Context) (_node *CourseModules, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(coursemodules.Table, coursemodules.Columns, sqlgraph.NewFieldSpec(coursemodules.FieldID, field.TypeString))
 	id, ok := _u.mutation.ID()
 	if !ok {
@@ -158,6 +338,21 @@ func (_u *CourseModulesUpdateOne) sqlSave(ctx context.Context) (_node *CourseMod
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(coursemodules.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.VersionID(); ok {
+		_spec.SetField(coursemodules.FieldVersionID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Title(); ok {
+		_spec.SetField(coursemodules.FieldTitle, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SequenceOrder(); ok {
+		_spec.SetField(coursemodules.FieldSequenceOrder, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSequenceOrder(); ok {
+		_spec.AddField(coursemodules.FieldSequenceOrder, field.TypeInt, value)
 	}
 	_node = &CourseModules{config: _u.config}
 	_spec.Assign = _node.assignValues

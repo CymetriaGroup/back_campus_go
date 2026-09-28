@@ -3,6 +3,8 @@
 package coursemodules
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -11,6 +13,16 @@ const (
 	Label = "course_modules"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
+	// FieldVersionID holds the string denoting the version_id field in the database.
+	FieldVersionID = "version_id"
+	// FieldTitle holds the string denoting the title field in the database.
+	FieldTitle = "title"
+	// FieldSequenceOrder holds the string denoting the sequence_order field in the database.
+	FieldSequenceOrder = "sequence_order"
 	// Table holds the table name of the coursemodules in the database.
 	Table = "course_modules"
 )
@@ -18,6 +30,11 @@ const (
 // Columns holds all SQL columns for coursemodules fields.
 var Columns = []string{
 	FieldID,
+	FieldCreatedAt,
+	FieldUpdatedAt,
+	FieldVersionID,
+	FieldTitle,
+	FieldSequenceOrder,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -31,6 +48,16 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
+	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	TitleValidator func(string) error
+	// SequenceOrderValidator is a validator for the "sequence_order" field. It is called by the builders before save.
+	SequenceOrderValidator func(int) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -43,4 +70,29 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByVersionID orders the results by the version_id field.
+func ByVersionID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVersionID, opts...).ToFunc()
+}
+
+// ByTitle orders the results by the title field.
+func ByTitle(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTitle, opts...).ToFunc()
+}
+
+// BySequenceOrder orders the results by the sequence_order field.
+func BySequenceOrder(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSequenceOrder, opts...).ToFunc()
 }

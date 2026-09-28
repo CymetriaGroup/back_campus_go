@@ -11,6 +11,7 @@ import (
 	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/coursetemplates"
 	"hexagonal-go-backend/internal/ent/courseversions"
+	"hexagonal-go-backend/internal/ent/lessons"
 	"hexagonal-go-backend/internal/ent/predicate"
 	"hexagonal-go-backend/internal/ent/syllabi"
 	"hexagonal-go-backend/internal/ent/user"
@@ -182,6 +183,33 @@ func (f TraverseCourseVersions) Traverse(ctx context.Context, q ent.Query) error
 	return fmt.Errorf("unexpected query type %T. expect *ent.CourseVersionsQuery", q)
 }
 
+// The LessonsFunc type is an adapter to allow the use of ordinary function as a Querier.
+type LessonsFunc func(context.Context, *ent.LessonsQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f LessonsFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.LessonsQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.LessonsQuery", q)
+}
+
+// The TraverseLessons type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseLessons func(context.Context, *ent.LessonsQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseLessons) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseLessons) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.LessonsQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.LessonsQuery", q)
+}
+
 // The SyllabiFunc type is an adapter to allow the use of ordinary function as a Querier.
 type SyllabiFunc func(context.Context, *ent.SyllabiQuery) (ent.Value, error)
 
@@ -247,6 +275,8 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.CourseTemplatesQuery, predicate.CourseTemplates, coursetemplates.OrderOption]{typ: ent.TypeCourseTemplates, tq: q}, nil
 	case *ent.CourseVersionsQuery:
 		return &query[*ent.CourseVersionsQuery, predicate.CourseVersions, courseversions.OrderOption]{typ: ent.TypeCourseVersions, tq: q}, nil
+	case *ent.LessonsQuery:
+		return &query[*ent.LessonsQuery, predicate.Lessons, lessons.OrderOption]{typ: ent.TypeLessons, tq: q}, nil
 	case *ent.SyllabiQuery:
 		return &query[*ent.SyllabiQuery, predicate.Syllabi, syllabi.OrderOption]{typ: ent.TypeSyllabi, tq: q}, nil
 	case *ent.UserQuery:

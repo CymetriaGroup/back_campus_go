@@ -15,6 +15,7 @@ import (
 	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/coursetemplates"
 	"hexagonal-go-backend/internal/ent/courseversions"
+	"hexagonal-go-backend/internal/ent/lessons"
 	"hexagonal-go-backend/internal/ent/syllabi"
 	"hexagonal-go-backend/internal/ent/user"
 
@@ -37,6 +38,8 @@ type Client struct {
 	CourseTemplates *CourseTemplatesClient
 	// CourseVersions is the client for interacting with the CourseVersions builders.
 	CourseVersions *CourseVersionsClient
+	// Lessons is the client for interacting with the Lessons builders.
+	Lessons *LessonsClient
 	// Syllabi is the client for interacting with the Syllabi builders.
 	Syllabi *SyllabiClient
 	// User is the client for interacting with the User builders.
@@ -56,6 +59,7 @@ func (c *Client) init() {
 	c.CourseModules = NewCourseModulesClient(c.config)
 	c.CourseTemplates = NewCourseTemplatesClient(c.config)
 	c.CourseVersions = NewCourseVersionsClient(c.config)
+	c.Lessons = NewLessonsClient(c.config)
 	c.Syllabi = NewSyllabiClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -154,6 +158,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CourseModules:    NewCourseModulesClient(cfg),
 		CourseTemplates:  NewCourseTemplatesClient(cfg),
 		CourseVersions:   NewCourseVersionsClient(cfg),
+		Lessons:          NewLessonsClient(cfg),
 		Syllabi:          NewSyllabiClient(cfg),
 		User:             NewUserClient(cfg),
 	}, nil
@@ -179,6 +184,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CourseModules:    NewCourseModulesClient(cfg),
 		CourseTemplates:  NewCourseTemplatesClient(cfg),
 		CourseVersions:   NewCourseVersionsClient(cfg),
+		Lessons:          NewLessonsClient(cfg),
 		Syllabi:          NewSyllabiClient(cfg),
 		User:             NewUserClient(cfg),
 	}, nil
@@ -211,7 +217,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.CourseCategories, c.CourseModules, c.CourseTemplates, c.CourseVersions,
-		c.Syllabi, c.User,
+		c.Lessons, c.Syllabi, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -222,7 +228,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.CourseCategories, c.CourseModules, c.CourseTemplates, c.CourseVersions,
-		c.Syllabi, c.User,
+		c.Lessons, c.Syllabi, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -239,6 +245,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CourseTemplates.mutate(ctx, m)
 	case *CourseVersionsMutation:
 		return c.CourseVersions.mutate(ctx, m)
+	case *LessonsMutation:
+		return c.Lessons.mutate(ctx, m)
 	case *SyllabiMutation:
 		return c.Syllabi.mutate(ctx, m)
 	case *UserMutation:
@@ -828,6 +836,139 @@ func (c *CourseVersionsClient) mutate(ctx context.Context, m *CourseVersionsMuta
 	}
 }
 
+// LessonsClient is a client for the Lessons schema.
+type LessonsClient struct {
+	config
+}
+
+// NewLessonsClient returns a client for the Lessons from the given config.
+func NewLessonsClient(c config) *LessonsClient {
+	return &LessonsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lessons.Hooks(f(g(h())))`.
+func (c *LessonsClient) Use(hooks ...Hook) {
+	c.hooks.Lessons = append(c.hooks.Lessons, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lessons.Intercept(f(g(h())))`.
+func (c *LessonsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Lessons = append(c.inters.Lessons, interceptors...)
+}
+
+// Create returns a builder for creating a Lessons entity.
+func (c *LessonsClient) Create() *LessonsCreate {
+	mutation := newLessonsMutation(c.config, OpCreate)
+	return &LessonsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Lessons entities.
+func (c *LessonsClient) CreateBulk(builders ...*LessonsCreate) *LessonsCreateBulk {
+	return &LessonsCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LessonsClient) MapCreateBulk(slice any, setFunc func(*LessonsCreate, int)) *LessonsCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LessonsCreateBulk{err: fmt.Errorf("calling to LessonsClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LessonsCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LessonsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Lessons.
+func (c *LessonsClient) Update() *LessonsUpdate {
+	mutation := newLessonsMutation(c.config, OpUpdate)
+	return &LessonsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LessonsClient) UpdateOne(_m *Lessons) *LessonsUpdateOne {
+	mutation := newLessonsMutation(c.config, OpUpdateOne, withLessons(_m))
+	return &LessonsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LessonsClient) UpdateOneID(id int) *LessonsUpdateOne {
+	mutation := newLessonsMutation(c.config, OpUpdateOne, withLessonsID(id))
+	return &LessonsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Lessons.
+func (c *LessonsClient) Delete() *LessonsDelete {
+	mutation := newLessonsMutation(c.config, OpDelete)
+	return &LessonsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LessonsClient) DeleteOne(_m *Lessons) *LessonsDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LessonsClient) DeleteOneID(id int) *LessonsDeleteOne {
+	builder := c.Delete().Where(lessons.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LessonsDeleteOne{builder}
+}
+
+// Query returns a query builder for Lessons.
+func (c *LessonsClient) Query() *LessonsQuery {
+	return &LessonsQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLessons},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Lessons entity by its id.
+func (c *LessonsClient) Get(ctx context.Context, id int) (*Lessons, error) {
+	return c.Query().Where(lessons.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LessonsClient) GetX(ctx context.Context, id int) *Lessons {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *LessonsClient) Hooks() []Hook {
+	return c.hooks.Lessons
+}
+
+// Interceptors returns the client interceptors.
+func (c *LessonsClient) Interceptors() []Interceptor {
+	return c.inters.Lessons
+}
+
+func (c *LessonsClient) mutate(ctx context.Context, m *LessonsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LessonsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LessonsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LessonsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LessonsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Lessons mutation op: %q", m.Op())
+	}
+}
+
 // SyllabiClient is a client for the Syllabi schema.
 type SyllabiClient struct {
 	config
@@ -1113,11 +1254,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		CourseCategories, CourseModules, CourseTemplates, CourseVersions, Syllabi,
-		User []ent.Hook
+		CourseCategories, CourseModules, CourseTemplates, CourseVersions, Lessons,
+		Syllabi, User []ent.Hook
 	}
 	inters struct {
-		CourseCategories, CourseModules, CourseTemplates, CourseVersions, Syllabi,
-		User []ent.Interceptor
+		CourseCategories, CourseModules, CourseTemplates, CourseVersions, Lessons,
+		Syllabi, User []ent.Interceptor
 	}
 )

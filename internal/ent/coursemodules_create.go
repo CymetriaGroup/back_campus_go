@@ -4,8 +4,10 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"hexagonal-go-backend/internal/ent/coursemodules"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -16,6 +18,52 @@ type CourseModulesCreate struct {
 	config
 	mutation *CourseModulesMutation
 	hooks    []Hook
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (_c *CourseModulesCreate) SetCreatedAt(v time.Time) *CourseModulesCreate {
+	_c.mutation.SetCreatedAt(v)
+	return _c
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *CourseModulesCreate) SetNillableCreatedAt(v *time.Time) *CourseModulesCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (_c *CourseModulesCreate) SetUpdatedAt(v time.Time) *CourseModulesCreate {
+	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *CourseModulesCreate) SetNillableUpdatedAt(v *time.Time) *CourseModulesCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
+	return _c
+}
+
+// SetVersionID sets the "version_id" field.
+func (_c *CourseModulesCreate) SetVersionID(v string) *CourseModulesCreate {
+	_c.mutation.SetVersionID(v)
+	return _c
+}
+
+// SetTitle sets the "title" field.
+func (_c *CourseModulesCreate) SetTitle(v string) *CourseModulesCreate {
+	_c.mutation.SetTitle(v)
+	return _c
+}
+
+// SetSequenceOrder sets the "sequence_order" field.
+func (_c *CourseModulesCreate) SetSequenceOrder(v int) *CourseModulesCreate {
+	_c.mutation.SetSequenceOrder(v)
+	return _c
 }
 
 // SetID sets the "id" field.
@@ -67,6 +115,14 @@ func (_c *CourseModulesCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *CourseModulesCreate) defaults() {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := coursemodules.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := coursemodules.DefaultUpdatedAt
+		_c.mutation.SetUpdatedAt(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := coursemodules.DefaultID()
 		_c.mutation.SetID(v)
@@ -75,6 +131,31 @@ func (_c *CourseModulesCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *CourseModulesCreate) check() error {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "CourseModules.created_at"`)}
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "CourseModules.updated_at"`)}
+	}
+	if _, ok := _c.mutation.VersionID(); !ok {
+		return &ValidationError{Name: "version_id", err: errors.New(`ent: missing required field "CourseModules.version_id"`)}
+	}
+	if _, ok := _c.mutation.Title(); !ok {
+		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "CourseModules.title"`)}
+	}
+	if v, ok := _c.mutation.Title(); ok {
+		if err := coursemodules.TitleValidator(v); err != nil {
+			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "CourseModules.title": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SequenceOrder(); !ok {
+		return &ValidationError{Name: "sequence_order", err: errors.New(`ent: missing required field "CourseModules.sequence_order"`)}
+	}
+	if v, ok := _c.mutation.SequenceOrder(); ok {
+		if err := coursemodules.SequenceOrderValidator(v); err != nil {
+			return &ValidationError{Name: "sequence_order", err: fmt.Errorf(`ent: validator failed for field "CourseModules.sequence_order": %w`, err)}
+		}
+	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := coursemodules.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "CourseModules.id": %w`, err)}
@@ -114,6 +195,26 @@ func (_c *CourseModulesCreate) createSpec() (*CourseModules, *sqlgraph.CreateSpe
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
+	}
+	if value, ok := _c.mutation.CreatedAt(); ok {
+		_spec.SetField(coursemodules.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := _c.mutation.UpdatedAt(); ok {
+		_spec.SetField(coursemodules.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.VersionID(); ok {
+		_spec.SetField(coursemodules.FieldVersionID, field.TypeString, value)
+		_node.VersionID = value
+	}
+	if value, ok := _c.mutation.Title(); ok {
+		_spec.SetField(coursemodules.FieldTitle, field.TypeString, value)
+		_node.Title = value
+	}
+	if value, ok := _c.mutation.SequenceOrder(); ok {
+		_spec.SetField(coursemodules.FieldSequenceOrder, field.TypeInt, value)
+		_node.SequenceOrder = value
 	}
 	return _node, _spec
 }

@@ -18,6 +18,9 @@ type CourseTemplates func(*sql.Selector)
 // CourseVersions is the predicate function for courseversions builders.
 type CourseVersions func(*sql.Selector)
 
+// Lessons is the predicate function for lessons builders.
+type Lessons func(*sql.Selector)
+
 // Syllabi is the predicate function for syllabi builders.
 type Syllabi func(*sql.Selector)
 

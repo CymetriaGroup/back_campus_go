@@ -138,8 +138,42 @@ func init() {
 	coursemodulesMixin := schema.CourseModules{}.Mixin()
 	coursemodulesMixinFields0 := coursemodulesMixin[0].Fields()
 	_ = coursemodulesMixinFields0
+	coursemodulesMixinFields1 := coursemodulesMixin[1].Fields()
+	_ = coursemodulesMixinFields1
 	coursemodulesFields := schema.CourseModules{}.Fields()
 	_ = coursemodulesFields
+	// coursemodulesDescCreatedAt is the schema descriptor for created_at field.
+	coursemodulesDescCreatedAt := coursemodulesMixinFields1[0].Descriptor()
+	// coursemodules.DefaultCreatedAt holds the default value on creation for the created_at field.
+	coursemodules.DefaultCreatedAt = coursemodulesDescCreatedAt.Default.(func() time.Time)
+	// coursemodulesDescUpdatedAt is the schema descriptor for updated_at field.
+	coursemodulesDescUpdatedAt := coursemodulesMixinFields1[1].Descriptor()
+	// coursemodules.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	coursemodules.DefaultUpdatedAt = coursemodulesDescUpdatedAt.Default.(time.Time)
+	// coursemodules.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	coursemodules.UpdateDefaultUpdatedAt = coursemodulesDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// coursemodulesDescTitle is the schema descriptor for title field.
+	coursemodulesDescTitle := coursemodulesFields[1].Descriptor()
+	// coursemodules.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	coursemodules.TitleValidator = coursemodulesDescTitle.Validators[0].(func(string) error)
+	// coursemodulesDescSequenceOrder is the schema descriptor for sequence_order field.
+	coursemodulesDescSequenceOrder := coursemodulesFields[2].Descriptor()
+	// coursemodules.SequenceOrderValidator is a validator for the "sequence_order" field. It is called by the builders before save.
+	coursemodules.SequenceOrderValidator = func() func(int) error {
+		validators := coursemodulesDescSequenceOrder.Validators
+		fns := [...]func(int) error{
+			validators[0].(func(int) error),
+			validators[1].(func(int) error),
+		}
+		return func(sequence_order int) error {
+			for _, fn := range fns {
+				if err := fn(sequence_order); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// coursemodulesDescID is the schema descriptor for id field.
 	coursemodulesDescID := coursemodulesMixinFields0[0].Descriptor()
 	// coursemodules.DefaultID holds the default value on creation for the id field.
