@@ -5,7 +5,7 @@ MODULES_DIR := internal/modules
 MIGRATIONS_DIR := file://migrations
 ATLAS ?= atlas
 
-.PHONY: run build test cover fmt fmt-check vet lint check ent-generate ent-schema atlas-check migration-diff migrate-baseline migrate-apply migrate-status docker-up docker-down module clean
+.PHONY: run build test cover fmt fmt-check vet lint check swagger ent-generate ent-schema atlas-check migration-diff migrate-baseline migrate-apply migrate-status docker-up docker-down module clean
 
 run:
 	@if [ -f .env ]; then \
@@ -37,6 +37,9 @@ lint:
 	golangci-lint run
 
 check: fmt-check vet test build
+
+swagger:
+	go run github.com/swaggo/swag/cmd/swag@v1.16.3 init -g internal/platform/http/router.go -o docs --parseDependency --parseInternal
 
 ent-generate:
 	GOTOOLCHAIN=go1.26.0 go generate ./internal/ent
