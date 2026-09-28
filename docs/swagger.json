@@ -1,0 +1,23 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API REST construida con Go, Gin y Arquitectura Hexagonal.",
+        "title": "Go Hexagonal API",
+        "contact": {
+            "name": "API Support",
+            "email": "soporte@empresa.com"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {},
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Escribe \"Bearer \" seguido de tu token JWT",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

@@ -7,7 +7,12 @@ import (
 	"fmt"
 
 	"hexagonal-go-backend/internal/ent"
+	"hexagonal-go-backend/internal/ent/coursecategories"
+	"hexagonal-go-backend/internal/ent/coursemodules"
+	"hexagonal-go-backend/internal/ent/coursetemplates"
+	"hexagonal-go-backend/internal/ent/courseversions"
 	"hexagonal-go-backend/internal/ent/predicate"
+	"hexagonal-go-backend/internal/ent/syllabi"
 	"hexagonal-go-backend/internal/ent/user"
 
 	"entgo.io/ent/dialect/sql"
@@ -69,6 +74,141 @@ func (f TraverseFunc) Traverse(ctx context.Context, q ent.Query) error {
 	return f(ctx, query)
 }
 
+// The CourseCategoriesFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CourseCategoriesFunc func(context.Context, *ent.CourseCategoriesQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f CourseCategoriesFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.CourseCategoriesQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CourseCategoriesQuery", q)
+}
+
+// The TraverseCourseCategories type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCourseCategories func(context.Context, *ent.CourseCategoriesQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCourseCategories) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCourseCategories) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CourseCategoriesQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.CourseCategoriesQuery", q)
+}
+
+// The CourseModulesFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CourseModulesFunc func(context.Context, *ent.CourseModulesQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f CourseModulesFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.CourseModulesQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CourseModulesQuery", q)
+}
+
+// The TraverseCourseModules type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCourseModules func(context.Context, *ent.CourseModulesQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCourseModules) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCourseModules) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CourseModulesQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.CourseModulesQuery", q)
+}
+
+// The CourseTemplatesFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CourseTemplatesFunc func(context.Context, *ent.CourseTemplatesQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f CourseTemplatesFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.CourseTemplatesQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CourseTemplatesQuery", q)
+}
+
+// The TraverseCourseTemplates type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCourseTemplates func(context.Context, *ent.CourseTemplatesQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCourseTemplates) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCourseTemplates) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CourseTemplatesQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.CourseTemplatesQuery", q)
+}
+
+// The CourseVersionsFunc type is an adapter to allow the use of ordinary function as a Querier.
+type CourseVersionsFunc func(context.Context, *ent.CourseVersionsQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f CourseVersionsFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.CourseVersionsQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.CourseVersionsQuery", q)
+}
+
+// The TraverseCourseVersions type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseCourseVersions func(context.Context, *ent.CourseVersionsQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseCourseVersions) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseCourseVersions) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CourseVersionsQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.CourseVersionsQuery", q)
+}
+
+// The SyllabiFunc type is an adapter to allow the use of ordinary function as a Querier.
+type SyllabiFunc func(context.Context, *ent.SyllabiQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f SyllabiFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.SyllabiQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.SyllabiQuery", q)
+}
+
+// The TraverseSyllabi type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseSyllabi func(context.Context, *ent.SyllabiQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseSyllabi) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseSyllabi) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.SyllabiQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.SyllabiQuery", q)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary function as a Querier.
 type UserFunc func(context.Context, *ent.UserQuery) (ent.Value, error)
 
@@ -99,6 +239,16 @@ func (f TraverseUser) Traverse(ctx context.Context, q ent.Query) error {
 // NewQuery returns the generic Query interface for the given typed query.
 func NewQuery(q ent.Query) (Query, error) {
 	switch q := q.(type) {
+	case *ent.CourseCategoriesQuery:
+		return &query[*ent.CourseCategoriesQuery, predicate.CourseCategories, coursecategories.OrderOption]{typ: ent.TypeCourseCategories, tq: q}, nil
+	case *ent.CourseModulesQuery:
+		return &query[*ent.CourseModulesQuery, predicate.CourseModules, coursemodules.OrderOption]{typ: ent.TypeCourseModules, tq: q}, nil
+	case *ent.CourseTemplatesQuery:
+		return &query[*ent.CourseTemplatesQuery, predicate.CourseTemplates, coursetemplates.OrderOption]{typ: ent.TypeCourseTemplates, tq: q}, nil
+	case *ent.CourseVersionsQuery:
+		return &query[*ent.CourseVersionsQuery, predicate.CourseVersions, courseversions.OrderOption]{typ: ent.TypeCourseVersions, tq: q}, nil
+	case *ent.SyllabiQuery:
+		return &query[*ent.SyllabiQuery, predicate.Syllabi, syllabi.OrderOption]{typ: ent.TypeSyllabi, tq: q}, nil
 	case *ent.UserQuery:
 		return &query[*ent.UserQuery, predicate.User, user.OrderOption]{typ: ent.TypeUser, tq: q}, nil
 	default:

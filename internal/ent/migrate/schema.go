@@ -8,9 +8,101 @@ import (
 )
 
 var (
+	// CourseCategoriesColumns holds the columns for the "course_categories" table.
+	CourseCategoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Size: 26},
+		{Name: "tenant_id", Type: field.TypeString, Size: 26},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Size: 100},
+		{Name: "name", Type: field.TypeString, Size: 250},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647, Default: ""},
+		{Name: "parent_id", Type: field.TypeString, Size: 26},
+	}
+	// CourseCategoriesTable holds the schema information for the "course_categories" table.
+	CourseCategoriesTable = &schema.Table{
+		Name:       "course_categories",
+		Columns:    CourseCategoriesColumns,
+		PrimaryKey: []*schema.Column{CourseCategoriesColumns[0]},
+	}
+	// CourseModulesColumns holds the columns for the "course_modules" table.
+	CourseModulesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Size: 26},
+	}
+	// CourseModulesTable holds the schema information for the "course_modules" table.
+	CourseModulesTable = &schema.Table{
+		Name:       "course_modules",
+		Columns:    CourseModulesColumns,
+		PrimaryKey: []*schema.Column{CourseModulesColumns[0]},
+	}
+	// CourseTemplatesColumns holds the columns for the "course_templates" table.
+	CourseTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Size: 26},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Unique: true, Size: 200},
+		{Name: "title", Type: field.TypeString, Size: 200},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647, Default: ""},
+	}
+	// CourseTemplatesTable holds the schema information for the "course_templates" table.
+	CourseTemplatesTable = &schema.Table{
+		Name:       "course_templates",
+		Columns:    CourseTemplatesColumns,
+		PrimaryKey: []*schema.Column{CourseTemplatesColumns[0]},
+	}
+	// CourseVersionsColumns holds the columns for the "course_versions" table.
+	CourseVersionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Size: 26},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "version_tag", Type: field.TypeString, Size: 100},
+		{Name: "status", Type: field.TypeString, Size: 100},
+		{Name: "estimated_hours", Type: field.TypeInt, Default: 0},
+		{Name: "template_id", Type: field.TypeString, Size: 26},
+	}
+	// CourseVersionsTable holds the schema information for the "course_versions" table.
+	CourseVersionsTable = &schema.Table{
+		Name:       "course_versions",
+		Columns:    CourseVersionsColumns,
+		PrimaryKey: []*schema.Column{CourseVersionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "course_versions_course_templates_versions",
+				Columns:    []*schema.Column{CourseVersionsColumns[6]},
+				RefColumns: []*schema.Column{CourseTemplatesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// SyllabisColumns holds the columns for the "syllabis" table.
+	SyllabisColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Size: 26},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "objectives", Type: field.TypeString, Nullable: true, Size: 2147483647, Default: ""},
+		{Name: "entry_profile", Type: field.TypeString, Nullable: true, Size: 2147483647, Default: ""},
+		{Name: "exit_profile", Type: field.TypeString, Nullable: true, Size: 2147483647, Default: ""},
+		{Name: "methodology", Type: field.TypeString, Nullable: true, Default: ""},
+		{Name: "durations_hours", Type: field.TypeInt, Default: 0},
+		{Name: "version_id", Type: field.TypeString, Size: 26},
+	}
+	// SyllabisTable holds the schema information for the "syllabis" table.
+	SyllabisTable = &schema.Table{
+		Name:       "syllabis",
+		Columns:    SyllabisColumns,
+		PrimaryKey: []*schema.Column{SyllabisColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "syllabis_course_versions_syllabi",
+				Columns:    []*schema.Column{SyllabisColumns[8]},
+				RefColumns: []*schema.Column{CourseVersionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString},
+		{Name: "id", Type: field.TypeString, Size: 26},
 		{Name: "name", Type: field.TypeString, Size: 100},
 		{Name: "email", Type: field.TypeString, Size: 255},
 		{Name: "password_hash", Type: field.TypeString},
@@ -39,9 +131,16 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CourseCategoriesTable,
+		CourseModulesTable,
+		CourseTemplatesTable,
+		CourseVersionsTable,
+		SyllabisTable,
 		UsersTable,
 	}
 )
 
 func init() {
+	CourseVersionsTable.ForeignKeys[0].RefTable = CourseTemplatesTable
+	SyllabisTable.ForeignKeys[0].RefTable = CourseVersionsTable
 }

@@ -8,6 +8,66 @@ import (
 	"hexagonal-go-backend/internal/ent"
 )
 
+// The CourseCategoriesFunc type is an adapter to allow the use of ordinary
+// function as CourseCategories mutator.
+type CourseCategoriesFunc func(context.Context, *ent.CourseCategoriesMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CourseCategoriesFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CourseCategoriesMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CourseCategoriesMutation", m)
+}
+
+// The CourseModulesFunc type is an adapter to allow the use of ordinary
+// function as CourseModules mutator.
+type CourseModulesFunc func(context.Context, *ent.CourseModulesMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CourseModulesFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CourseModulesMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CourseModulesMutation", m)
+}
+
+// The CourseTemplatesFunc type is an adapter to allow the use of ordinary
+// function as CourseTemplates mutator.
+type CourseTemplatesFunc func(context.Context, *ent.CourseTemplatesMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CourseTemplatesFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CourseTemplatesMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CourseTemplatesMutation", m)
+}
+
+// The CourseVersionsFunc type is an adapter to allow the use of ordinary
+// function as CourseVersions mutator.
+type CourseVersionsFunc func(context.Context, *ent.CourseVersionsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CourseVersionsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CourseVersionsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CourseVersionsMutation", m)
+}
+
+// The SyllabiFunc type is an adapter to allow the use of ordinary
+// function as Syllabi mutator.
+type SyllabiFunc func(context.Context, *ent.SyllabiMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SyllabiFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SyllabiMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SyllabiMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
