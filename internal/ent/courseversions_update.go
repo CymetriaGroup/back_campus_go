@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/coursetemplates"
 	"hexagonal-go-backend/internal/ent/courseversions"
 	"hexagonal-go-backend/internal/ent/predicate"
@@ -119,6 +120,21 @@ func (_u *CourseVersionsUpdate) AddSyllabi(v ...*Syllabi) *CourseVersionsUpdate 
 	return _u.AddSyllabiIDs(ids...)
 }
 
+// AddModuleIDs adds the "modules" edge to the CourseModules entity by IDs.
+func (_u *CourseVersionsUpdate) AddModuleIDs(ids ...string) *CourseVersionsUpdate {
+	_u.mutation.AddModuleIDs(ids...)
+	return _u
+}
+
+// AddModules adds the "modules" edges to the CourseModules entity.
+func (_u *CourseVersionsUpdate) AddModules(v ...*CourseModules) *CourseVersionsUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddModuleIDs(ids...)
+}
+
 // Mutation returns the CourseVersionsMutation object of the builder.
 func (_u *CourseVersionsUpdate) Mutation() *CourseVersionsMutation {
 	return _u.mutation
@@ -149,6 +165,27 @@ func (_u *CourseVersionsUpdate) RemoveSyllabi(v ...*Syllabi) *CourseVersionsUpda
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSyllabiIDs(ids...)
+}
+
+// ClearModules clears all "modules" edges to the CourseModules entity.
+func (_u *CourseVersionsUpdate) ClearModules() *CourseVersionsUpdate {
+	_u.mutation.ClearModules()
+	return _u
+}
+
+// RemoveModuleIDs removes the "modules" edge to CourseModules entities by IDs.
+func (_u *CourseVersionsUpdate) RemoveModuleIDs(ids ...string) *CourseVersionsUpdate {
+	_u.mutation.RemoveModuleIDs(ids...)
+	return _u
+}
+
+// RemoveModules removes "modules" edges to CourseModules entities.
+func (_u *CourseVersionsUpdate) RemoveModules(v ...*CourseModules) *CourseVersionsUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveModuleIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -311,6 +348,51 @@ func (_u *CourseVersionsUpdate) sqlSave(ctx context.Context) (_node int, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ModulesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   courseversions.ModulesTable,
+			Columns: []string{courseversions.ModulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(coursemodules.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedModulesIDs(); len(nodes) > 0 && !_u.mutation.ModulesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   courseversions.ModulesTable,
+			Columns: []string{courseversions.ModulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(coursemodules.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ModulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   courseversions.ModulesTable,
+			Columns: []string{courseversions.ModulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(coursemodules.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{courseversions.Label}
@@ -420,6 +502,21 @@ func (_u *CourseVersionsUpdateOne) AddSyllabi(v ...*Syllabi) *CourseVersionsUpda
 	return _u.AddSyllabiIDs(ids...)
 }
 
+// AddModuleIDs adds the "modules" edge to the CourseModules entity by IDs.
+func (_u *CourseVersionsUpdateOne) AddModuleIDs(ids ...string) *CourseVersionsUpdateOne {
+	_u.mutation.AddModuleIDs(ids...)
+	return _u
+}
+
+// AddModules adds the "modules" edges to the CourseModules entity.
+func (_u *CourseVersionsUpdateOne) AddModules(v ...*CourseModules) *CourseVersionsUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddModuleIDs(ids...)
+}
+
 // Mutation returns the CourseVersionsMutation object of the builder.
 func (_u *CourseVersionsUpdateOne) Mutation() *CourseVersionsMutation {
 	return _u.mutation
@@ -450,6 +547,27 @@ func (_u *CourseVersionsUpdateOne) RemoveSyllabi(v ...*Syllabi) *CourseVersionsU
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSyllabiIDs(ids...)
+}
+
+// ClearModules clears all "modules" edges to the CourseModules entity.
+func (_u *CourseVersionsUpdateOne) ClearModules() *CourseVersionsUpdateOne {
+	_u.mutation.ClearModules()
+	return _u
+}
+
+// RemoveModuleIDs removes the "modules" edge to CourseModules entities by IDs.
+func (_u *CourseVersionsUpdateOne) RemoveModuleIDs(ids ...string) *CourseVersionsUpdateOne {
+	_u.mutation.RemoveModuleIDs(ids...)
+	return _u
+}
+
+// RemoveModules removes "modules" edges to CourseModules entities.
+func (_u *CourseVersionsUpdateOne) RemoveModules(v ...*CourseModules) *CourseVersionsUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveModuleIDs(ids...)
 }
 
 // Where appends a list predicates to the CourseVersionsUpdate builder.
@@ -635,6 +753,51 @@ func (_u *CourseVersionsUpdateOne) sqlSave(ctx context.Context) (_node *CourseVe
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(syllabi.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ModulesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   courseversions.ModulesTable,
+			Columns: []string{courseversions.ModulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(coursemodules.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedModulesIDs(); len(nodes) > 0 && !_u.mutation.ModulesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   courseversions.ModulesTable,
+			Columns: []string{courseversions.ModulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(coursemodules.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ModulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   courseversions.ModulesTable,
+			Columns: []string{courseversions.ModulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(coursemodules.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

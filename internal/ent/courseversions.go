@@ -42,9 +42,11 @@ type CourseVersionsEdges struct {
 	Template *CourseTemplates `json:"template,omitempty"`
 	// Syllabi holds the value of the syllabi edge.
 	Syllabi []*Syllabi `json:"syllabi,omitempty"`
+	// Modules holds the value of the modules edge.
+	Modules []*CourseModules `json:"modules,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // TemplateOrErr returns the Template value or an error if the edge
@@ -65,6 +67,15 @@ func (e CourseVersionsEdges) SyllabiOrErr() ([]*Syllabi, error) {
 		return e.Syllabi, nil
 	}
 	return nil, &NotLoadedError{edge: "syllabi"}
+}
+
+// ModulesOrErr returns the Modules value or an error if the edge
+// was not loaded in eager-loading.
+func (e CourseVersionsEdges) ModulesOrErr() ([]*CourseModules, error) {
+	if e.loadedTypes[2] {
+		return e.Modules, nil
+	}
+	return nil, &NotLoadedError{edge: "modules"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -156,6 +167,11 @@ func (_m *CourseVersions) QueryTemplate() *CourseTemplatesQuery {
 // QuerySyllabi queries the "syllabi" edge of the CourseVersions entity.
 func (_m *CourseVersions) QuerySyllabi() *SyllabiQuery {
 	return NewCourseVersionsClient(_m.config).QuerySyllabi(_m)
+}
+
+// QueryModules queries the "modules" edge of the CourseVersions entity.
+func (_m *CourseVersions) QueryModules() *CourseModulesQuery {
+	return NewCourseVersionsClient(_m.config).QueryModules(_m)
 }
 
 // Update returns a builder for updating this CourseVersions.

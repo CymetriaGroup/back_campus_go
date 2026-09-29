@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/coursetemplates"
 	"hexagonal-go-backend/internal/ent/courseversions"
 	"hexagonal-go-backend/internal/ent/syllabi"
@@ -114,6 +115,21 @@ func (_c *CourseVersionsCreate) AddSyllabi(v ...*Syllabi) *CourseVersionsCreate 
 		ids[i] = v[i].ID
 	}
 	return _c.AddSyllabiIDs(ids...)
+}
+
+// AddModuleIDs adds the "modules" edge to the CourseModules entity by IDs.
+func (_c *CourseVersionsCreate) AddModuleIDs(ids ...string) *CourseVersionsCreate {
+	_c.mutation.AddModuleIDs(ids...)
+	return _c
+}
+
+// AddModules adds the "modules" edges to the CourseModules entity.
+func (_c *CourseVersionsCreate) AddModules(v ...*CourseModules) *CourseVersionsCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddModuleIDs(ids...)
 }
 
 // Mutation returns the CourseVersionsMutation object of the builder.
@@ -293,6 +309,22 @@ func (_c *CourseVersionsCreate) createSpec() (*CourseVersions, *sqlgraph.CreateS
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(syllabi.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ModulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   courseversions.ModulesTable,
+			Columns: []string{courseversions.ModulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(coursemodules.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

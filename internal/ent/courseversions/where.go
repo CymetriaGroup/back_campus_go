@@ -456,6 +456,29 @@ func HasSyllabiWith(preds ...predicate.Syllabi) predicate.CourseVersions {
 	})
 }
 
+// HasModules applies the HasEdge predicate on the "modules" edge.
+func HasModules() predicate.CourseVersions {
+	return predicate.CourseVersions(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ModulesTable, ModulesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasModulesWith applies the HasEdge predicate on the "modules" edge with a given conditions (other predicates).
+func HasModulesWith(preds ...predicate.CourseModules) predicate.CourseVersions {
+	return predicate.CourseVersions(func(s *sql.Selector) {
+		step := newModulesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.CourseVersions) predicate.CourseVersions {
 	return predicate.CourseVersions(sql.AndPredicates(predicates...))

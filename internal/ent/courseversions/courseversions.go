@@ -30,6 +30,8 @@ const (
 	EdgeTemplate = "template"
 	// EdgeSyllabi holds the string denoting the syllabi edge name in mutations.
 	EdgeSyllabi = "syllabi"
+	// EdgeModules holds the string denoting the modules edge name in mutations.
+	EdgeModules = "modules"
 	// Table holds the table name of the courseversions in the database.
 	Table = "course_versions"
 	// TemplateTable is the table that holds the template relation/edge.
@@ -46,6 +48,13 @@ const (
 	SyllabiInverseTable = "syllabis"
 	// SyllabiColumn is the table column denoting the syllabi relation/edge.
 	SyllabiColumn = "version_id"
+	// ModulesTable is the table that holds the modules relation/edge.
+	ModulesTable = "course_modules"
+	// ModulesInverseTable is the table name for the CourseModules entity.
+	// It exists in this package in order to avoid circular dependency with the "coursemodules" package.
+	ModulesInverseTable = "course_modules"
+	// ModulesColumn is the table column denoting the modules relation/edge.
+	ModulesColumn = "version_id"
 )
 
 // Columns holds all SQL columns for courseversions fields.
@@ -148,6 +157,20 @@ func BySyllabi(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newSyllabiStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByModulesCount orders the results by modules count.
+func ByModulesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newModulesStep(), opts...)
+	}
+}
+
+// ByModules orders the results by modules terms.
+func ByModules(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newModulesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTemplateStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -160,5 +183,12 @@ func newSyllabiStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SyllabiInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SyllabiTable, SyllabiColumn),
+	)
+}
+func newModulesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ModulesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ModulesTable, ModulesColumn),
 	)
 }

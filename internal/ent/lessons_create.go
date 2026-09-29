@@ -4,8 +4,12 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"hexagonal-go-backend/internal/ent/activities"
+	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/lessons"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -18,6 +22,86 @@ type LessonsCreate struct {
 	hooks    []Hook
 }
 
+// SetCreatedAt sets the "created_at" field.
+func (_c *LessonsCreate) SetCreatedAt(v time.Time) *LessonsCreate {
+	_c.mutation.SetCreatedAt(v)
+	return _c
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *LessonsCreate) SetNillableCreatedAt(v *time.Time) *LessonsCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (_c *LessonsCreate) SetUpdatedAt(v time.Time) *LessonsCreate {
+	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *LessonsCreate) SetNillableUpdatedAt(v *time.Time) *LessonsCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
+	return _c
+}
+
+// SetModuleID sets the "module_id" field.
+func (_c *LessonsCreate) SetModuleID(v string) *LessonsCreate {
+	_c.mutation.SetModuleID(v)
+	return _c
+}
+
+// SetTitle sets the "title" field.
+func (_c *LessonsCreate) SetTitle(v string) *LessonsCreate {
+	_c.mutation.SetTitle(v)
+	return _c
+}
+
+// SetSequenceOrder sets the "sequence_order" field.
+func (_c *LessonsCreate) SetSequenceOrder(v int) *LessonsCreate {
+	_c.mutation.SetSequenceOrder(v)
+	return _c
+}
+
+// SetID sets the "id" field.
+func (_c *LessonsCreate) SetID(v string) *LessonsCreate {
+	_c.mutation.SetID(v)
+	return _c
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (_c *LessonsCreate) SetNillableID(v *string) *LessonsCreate {
+	if v != nil {
+		_c.SetID(*v)
+	}
+	return _c
+}
+
+// SetModule sets the "module" edge to the CourseModules entity.
+func (_c *LessonsCreate) SetModule(v *CourseModules) *LessonsCreate {
+	return _c.SetModuleID(v.ID)
+}
+
+// AddActivityIDs adds the "activities" edge to the Activities entity by IDs.
+func (_c *LessonsCreate) AddActivityIDs(ids ...string) *LessonsCreate {
+	_c.mutation.AddActivityIDs(ids...)
+	return _c
+}
+
+// AddActivities adds the "activities" edges to the Activities entity.
+func (_c *LessonsCreate) AddActivities(v ...*Activities) *LessonsCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddActivityIDs(ids...)
+}
+
 // Mutation returns the LessonsMutation object of the builder.
 func (_c *LessonsCreate) Mutation() *LessonsMutation {
 	return _c.mutation
@@ -25,6 +109,7 @@ func (_c *LessonsCreate) Mutation() *LessonsMutation {
 
 // Save creates the Lessons in the database.
 func (_c *LessonsCreate) Save(ctx context.Context) (*Lessons, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -50,8 +135,62 @@ func (_c *LessonsCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_c *LessonsCreate) defaults() {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := lessons.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := lessons.DefaultUpdatedAt
+		_c.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := _c.mutation.ID(); !ok {
+		v := lessons.DefaultID()
+		_c.mutation.SetID(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_c *LessonsCreate) check() error {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Lessons.created_at"`)}
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Lessons.updated_at"`)}
+	}
+	if _, ok := _c.mutation.ModuleID(); !ok {
+		return &ValidationError{Name: "module_id", err: errors.New(`ent: missing required field "Lessons.module_id"`)}
+	}
+	if v, ok := _c.mutation.ModuleID(); ok {
+		if err := lessons.ModuleIDValidator(v); err != nil {
+			return &ValidationError{Name: "module_id", err: fmt.Errorf(`ent: validator failed for field "Lessons.module_id": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Title(); !ok {
+		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "Lessons.title"`)}
+	}
+	if v, ok := _c.mutation.Title(); ok {
+		if err := lessons.TitleValidator(v); err != nil {
+			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Lessons.title": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.SequenceOrder(); !ok {
+		return &ValidationError{Name: "sequence_order", err: errors.New(`ent: missing required field "Lessons.sequence_order"`)}
+	}
+	if v, ok := _c.mutation.SequenceOrder(); ok {
+		if err := lessons.SequenceOrderValidator(v); err != nil {
+			return &ValidationError{Name: "sequence_order", err: fmt.Errorf(`ent: validator failed for field "Lessons.sequence_order": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.ID(); ok {
+		if err := lessons.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Lessons.id": %w`, err)}
+		}
+	}
+	if len(_c.mutation.ModuleIDs()) == 0 {
+		return &ValidationError{Name: "module", err: errors.New(`ent: missing required edge "Lessons.module"`)}
+	}
 	return nil
 }
 
@@ -66,8 +205,13 @@ func (_c *LessonsCreate) sqlSave(ctx context.Context) (*Lessons, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Lessons.ID type: %T", _spec.ID.Value)
+		}
+	}
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -76,8 +220,61 @@ func (_c *LessonsCreate) sqlSave(ctx context.Context) (*Lessons, error) {
 func (_c *LessonsCreate) createSpec() (*Lessons, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Lessons{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(lessons.Table, sqlgraph.NewFieldSpec(lessons.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(lessons.Table, sqlgraph.NewFieldSpec(lessons.FieldID, field.TypeString))
 	)
+	if id, ok := _c.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
+	if value, ok := _c.mutation.CreatedAt(); ok {
+		_spec.SetField(lessons.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := _c.mutation.UpdatedAt(); ok {
+		_spec.SetField(lessons.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.Title(); ok {
+		_spec.SetField(lessons.FieldTitle, field.TypeString, value)
+		_node.Title = value
+	}
+	if value, ok := _c.mutation.SequenceOrder(); ok {
+		_spec.SetField(lessons.FieldSequenceOrder, field.TypeInt, value)
+		_node.SequenceOrder = value
+	}
+	if nodes := _c.mutation.ModuleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessons.ModuleTable,
+			Columns: []string{lessons.ModuleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(coursemodules.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ModuleID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ActivitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessons.ActivitiesTable,
+			Columns: []string{lessons.ActivitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activities.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -99,6 +296,7 @@ func (_c *LessonsCreateBulk) Save(ctx context.Context) ([]*Lessons, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*LessonsMutation)
 				if !ok {
@@ -125,10 +323,6 @@ func (_c *LessonsCreateBulk) Save(ctx context.Context) ([]*Lessons, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

@@ -4,8 +4,10 @@ package ent
 
 import (
 	"fmt"
+	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/lessons"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -13,10 +15,54 @@ import (
 
 // Lessons is the model entity for the Lessons schema.
 type Lessons struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
-	ID           int `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// ModuleID holds the value of the "module_id" field.
+	ModuleID string `json:"module_id,omitempty"`
+	// Title holds the value of the "title" field.
+	Title string `json:"title,omitempty"`
+	// SequenceOrder holds the value of the "sequence_order" field.
+	SequenceOrder int `json:"sequence_order,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the LessonsQuery when eager-loading is set.
+	Edges        LessonsEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// LessonsEdges holds the relations/edges for other nodes in the graph.
+type LessonsEdges struct {
+	// Module holds the value of the module edge.
+	Module *CourseModules `json:"module,omitempty"`
+	// Activities holds the value of the activities edge.
+	Activities []*Activities `json:"activities,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// ModuleOrErr returns the Module value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e LessonsEdges) ModuleOrErr() (*CourseModules, error) {
+	if e.Module != nil {
+		return e.Module, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: coursemodules.Label}
+	}
+	return nil, &NotLoadedError{edge: "module"}
+}
+
+// ActivitiesOrErr returns the Activities value or an error if the edge
+// was not loaded in eager-loading.
+func (e LessonsEdges) ActivitiesOrErr() ([]*Activities, error) {
+	if e.loadedTypes[1] {
+		return e.Activities, nil
+	}
+	return nil, &NotLoadedError{edge: "activities"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -24,8 +70,12 @@ func (*Lessons) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case lessons.FieldID:
+		case lessons.FieldSequenceOrder:
 			values[i] = new(sql.NullInt64)
+		case lessons.FieldID, lessons.FieldModuleID, lessons.FieldTitle:
+			values[i] = new(sql.NullString)
+		case lessons.FieldCreatedAt, lessons.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -42,11 +92,41 @@ func (_m *Lessons) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case lessons.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value.Valid {
+				_m.ID = value.String
 			}
-			_m.ID = int(value.Int64)
+		case lessons.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				_m.CreatedAt = value.Time
+			}
+		case lessons.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				_m.UpdatedAt = value.Time
+			}
+		case lessons.FieldModuleID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field module_id", values[i])
+			} else if value.Valid {
+				_m.ModuleID = value.String
+			}
+		case lessons.FieldTitle:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field title", values[i])
+			} else if value.Valid {
+				_m.Title = value.String
+			}
+		case lessons.FieldSequenceOrder:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field sequence_order", values[i])
+			} else if value.Valid {
+				_m.SequenceOrder = int(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -58,6 +138,16 @@ func (_m *Lessons) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *Lessons) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryModule queries the "module" edge of the Lessons entity.
+func (_m *Lessons) QueryModule() *CourseModulesQuery {
+	return NewLessonsClient(_m.config).QueryModule(_m)
+}
+
+// QueryActivities queries the "activities" edge of the Lessons entity.
+func (_m *Lessons) QueryActivities() *ActivitiesQuery {
+	return NewLessonsClient(_m.config).QueryActivities(_m)
 }
 
 // Update returns a builder for updating this Lessons.
@@ -82,7 +172,21 @@ func (_m *Lessons) Unwrap() *Lessons {
 func (_m *Lessons) String() string {
 	var builder strings.Builder
 	builder.WriteString("Lessons(")
-	builder.WriteString(fmt.Sprintf("id=%v", _m.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("module_id=")
+	builder.WriteString(_m.ModuleID)
+	builder.WriteString(", ")
+	builder.WriteString("title=")
+	builder.WriteString(_m.Title)
+	builder.WriteString(", ")
+	builder.WriteString("sequence_order=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SequenceOrder))
 	builder.WriteByte(')')
 	return builder.String()
 }

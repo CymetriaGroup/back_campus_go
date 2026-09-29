@@ -4,8 +4,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"hexagonal-go-backend/internal/ent/coursemodules"
+	"hexagonal-go-backend/internal/ent/courseversions"
+	"hexagonal-go-backend/internal/ent/lessons"
 	"hexagonal-go-backend/internal/ent/predicate"
 	"math"
 
@@ -18,10 +21,12 @@ import (
 // CourseModulesQuery is the builder for querying CourseModules entities.
 type CourseModulesQuery struct {
 	config
-	ctx        *QueryContext
-	order      []coursemodules.OrderOption
-	inters     []Interceptor
-	predicates []predicate.CourseModules
+	ctx         *QueryContext
+	order       []coursemodules.OrderOption
+	inters      []Interceptor
+	predicates  []predicate.CourseModules
+	withVersion *CourseVersionsQuery
+	withLessons *LessonsQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +61,50 @@ func (_q *CourseModulesQuery) Unique(unique bool) *CourseModulesQuery {
 func (_q *CourseModulesQuery) Order(o ...coursemodules.OrderOption) *CourseModulesQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QueryVersion chains the current query on the "version" edge.
+func (_q *CourseModulesQuery) QueryVersion() *CourseVersionsQuery {
+	query := (&CourseVersionsClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(coursemodules.Table, coursemodules.FieldID, selector),
+			sqlgraph.To(courseversions.Table, courseversions.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, coursemodules.VersionTable, coursemodules.VersionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryLessons chains the current query on the "lessons" edge.
+func (_q *CourseModulesQuery) QueryLessons() *LessonsQuery {
+	query := (&LessonsClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(coursemodules.Table, coursemodules.FieldID, selector),
+			sqlgraph.To(lessons.Table, lessons.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, coursemodules.LessonsTable, coursemodules.LessonsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first CourseModules entity from the query.
@@ -245,15 +294,39 @@ func (_q *CourseModulesQuery) Clone() *CourseModulesQuery {
 		return nil
 	}
 	return &CourseModulesQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]coursemodules.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.CourseModules{}, _q.predicates...),
+		config:      _q.config,
+		ctx:         _q.ctx.Clone(),
+		order:       append([]coursemodules.OrderOption{}, _q.order...),
+		inters:      append([]Interceptor{}, _q.inters...),
+		predicates:  append([]predicate.CourseModules{}, _q.predicates...),
+		withVersion: _q.withVersion.Clone(),
+		withLessons: _q.withLessons.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithVersion tells the query-builder to eager-load the nodes that are connected to
+// the "version" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CourseModulesQuery) WithVersion(opts ...func(*CourseVersionsQuery)) *CourseModulesQuery {
+	query := (&CourseVersionsClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withVersion = query
+	return _q
+}
+
+// WithLessons tells the query-builder to eager-load the nodes that are connected to
+// the "lessons" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CourseModulesQuery) WithLessons(opts ...func(*LessonsQuery)) *CourseModulesQuery {
+	query := (&LessonsClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withLessons = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -332,8 +405,12 @@ func (_q *CourseModulesQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *CourseModulesQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*CourseModules, error) {
 	var (
-		nodes = []*CourseModules{}
-		_spec = _q.querySpec()
+		nodes       = []*CourseModules{}
+		_spec       = _q.querySpec()
+		loadedTypes = [2]bool{
+			_q.withVersion != nil,
+			_q.withLessons != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*CourseModules).scanValues(nil, columns)
@@ -341,6 +418,7 @@ func (_q *CourseModulesQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &CourseModules{config: _q.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +430,80 @@ func (_q *CourseModulesQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withVersion; query != nil {
+		if err := _q.loadVersion(ctx, query, nodes, nil,
+			func(n *CourseModules, e *CourseVersions) { n.Edges.Version = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withLessons; query != nil {
+		if err := _q.loadLessons(ctx, query, nodes,
+			func(n *CourseModules) { n.Edges.Lessons = []*Lessons{} },
+			func(n *CourseModules, e *Lessons) { n.Edges.Lessons = append(n.Edges.Lessons, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (_q *CourseModulesQuery) loadVersion(ctx context.Context, query *CourseVersionsQuery, nodes []*CourseModules, init func(*CourseModules), assign func(*CourseModules, *CourseVersions)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*CourseModules)
+	for i := range nodes {
+		fk := nodes[i].VersionID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(courseversions.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "version_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *CourseModulesQuery) loadLessons(ctx context.Context, query *LessonsQuery, nodes []*CourseModules, init func(*CourseModules), assign func(*CourseModules, *Lessons)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*CourseModules)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(lessons.FieldModuleID)
+	}
+	query.Where(predicate.Lessons(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(coursemodules.LessonsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ModuleID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "module_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (_q *CourseModulesQuery) sqlCount(ctx context.Context) (int, error) {
@@ -379,6 +530,9 @@ func (_q *CourseModulesQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != coursemodules.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withVersion != nil {
+			_spec.Node.AddColumnOnce(coursemodules.FieldVersionID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

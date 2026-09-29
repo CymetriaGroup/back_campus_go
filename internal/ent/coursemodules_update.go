@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"hexagonal-go-backend/internal/ent/coursemodules"
+	"hexagonal-go-backend/internal/ent/courseversions"
+	"hexagonal-go-backend/internal/ent/lessons"
 	"hexagonal-go-backend/internal/ent/predicate"
 	"time"
 
@@ -83,9 +85,56 @@ func (_u *CourseModulesUpdate) AddSequenceOrder(v int) *CourseModulesUpdate {
 	return _u
 }
 
+// SetVersion sets the "version" edge to the CourseVersions entity.
+func (_u *CourseModulesUpdate) SetVersion(v *CourseVersions) *CourseModulesUpdate {
+	return _u.SetVersionID(v.ID)
+}
+
+// AddLessonIDs adds the "lessons" edge to the Lessons entity by IDs.
+func (_u *CourseModulesUpdate) AddLessonIDs(ids ...string) *CourseModulesUpdate {
+	_u.mutation.AddLessonIDs(ids...)
+	return _u
+}
+
+// AddLessons adds the "lessons" edges to the Lessons entity.
+func (_u *CourseModulesUpdate) AddLessons(v ...*Lessons) *CourseModulesUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddLessonIDs(ids...)
+}
+
 // Mutation returns the CourseModulesMutation object of the builder.
 func (_u *CourseModulesUpdate) Mutation() *CourseModulesMutation {
 	return _u.mutation
+}
+
+// ClearVersion clears the "version" edge to the CourseVersions entity.
+func (_u *CourseModulesUpdate) ClearVersion() *CourseModulesUpdate {
+	_u.mutation.ClearVersion()
+	return _u
+}
+
+// ClearLessons clears all "lessons" edges to the Lessons entity.
+func (_u *CourseModulesUpdate) ClearLessons() *CourseModulesUpdate {
+	_u.mutation.ClearLessons()
+	return _u
+}
+
+// RemoveLessonIDs removes the "lessons" edge to Lessons entities by IDs.
+func (_u *CourseModulesUpdate) RemoveLessonIDs(ids ...string) *CourseModulesUpdate {
+	_u.mutation.RemoveLessonIDs(ids...)
+	return _u
+}
+
+// RemoveLessons removes "lessons" edges to Lessons entities.
+func (_u *CourseModulesUpdate) RemoveLessons(v ...*Lessons) *CourseModulesUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveLessonIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -126,6 +175,11 @@ func (_u *CourseModulesUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *CourseModulesUpdate) check() error {
+	if v, ok := _u.mutation.VersionID(); ok {
+		if err := coursemodules.VersionIDValidator(v); err != nil {
+			return &ValidationError{Name: "version_id", err: fmt.Errorf(`ent: validator failed for field "CourseModules.version_id": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Title(); ok {
 		if err := coursemodules.TitleValidator(v); err != nil {
 			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "CourseModules.title": %w`, err)}
@@ -135,6 +189,9 @@ func (_u *CourseModulesUpdate) check() error {
 		if err := coursemodules.SequenceOrderValidator(v); err != nil {
 			return &ValidationError{Name: "sequence_order", err: fmt.Errorf(`ent: validator failed for field "CourseModules.sequence_order": %w`, err)}
 		}
+	}
+	if _u.mutation.VersionCleared() && len(_u.mutation.VersionIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "CourseModules.version"`)
 	}
 	return nil
 }
@@ -154,9 +211,6 @@ func (_u *CourseModulesUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(coursemodules.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.VersionID(); ok {
-		_spec.SetField(coursemodules.FieldVersionID, field.TypeString, value)
-	}
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(coursemodules.FieldTitle, field.TypeString, value)
 	}
@@ -165,6 +219,80 @@ func (_u *CourseModulesUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	}
 	if value, ok := _u.mutation.AddedSequenceOrder(); ok {
 		_spec.AddField(coursemodules.FieldSequenceOrder, field.TypeInt, value)
+	}
+	if _u.mutation.VersionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   coursemodules.VersionTable,
+			Columns: []string{coursemodules.VersionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(courseversions.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.VersionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   coursemodules.VersionTable,
+			Columns: []string{coursemodules.VersionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(courseversions.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.LessonsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   coursemodules.LessonsTable,
+			Columns: []string{coursemodules.LessonsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessons.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedLessonsIDs(); len(nodes) > 0 && !_u.mutation.LessonsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   coursemodules.LessonsTable,
+			Columns: []string{coursemodules.LessonsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessons.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.LessonsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   coursemodules.LessonsTable,
+			Columns: []string{coursemodules.LessonsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessons.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -241,9 +369,56 @@ func (_u *CourseModulesUpdateOne) AddSequenceOrder(v int) *CourseModulesUpdateOn
 	return _u
 }
 
+// SetVersion sets the "version" edge to the CourseVersions entity.
+func (_u *CourseModulesUpdateOne) SetVersion(v *CourseVersions) *CourseModulesUpdateOne {
+	return _u.SetVersionID(v.ID)
+}
+
+// AddLessonIDs adds the "lessons" edge to the Lessons entity by IDs.
+func (_u *CourseModulesUpdateOne) AddLessonIDs(ids ...string) *CourseModulesUpdateOne {
+	_u.mutation.AddLessonIDs(ids...)
+	return _u
+}
+
+// AddLessons adds the "lessons" edges to the Lessons entity.
+func (_u *CourseModulesUpdateOne) AddLessons(v ...*Lessons) *CourseModulesUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddLessonIDs(ids...)
+}
+
 // Mutation returns the CourseModulesMutation object of the builder.
 func (_u *CourseModulesUpdateOne) Mutation() *CourseModulesMutation {
 	return _u.mutation
+}
+
+// ClearVersion clears the "version" edge to the CourseVersions entity.
+func (_u *CourseModulesUpdateOne) ClearVersion() *CourseModulesUpdateOne {
+	_u.mutation.ClearVersion()
+	return _u
+}
+
+// ClearLessons clears all "lessons" edges to the Lessons entity.
+func (_u *CourseModulesUpdateOne) ClearLessons() *CourseModulesUpdateOne {
+	_u.mutation.ClearLessons()
+	return _u
+}
+
+// RemoveLessonIDs removes the "lessons" edge to Lessons entities by IDs.
+func (_u *CourseModulesUpdateOne) RemoveLessonIDs(ids ...string) *CourseModulesUpdateOne {
+	_u.mutation.RemoveLessonIDs(ids...)
+	return _u
+}
+
+// RemoveLessons removes "lessons" edges to Lessons entities.
+func (_u *CourseModulesUpdateOne) RemoveLessons(v ...*Lessons) *CourseModulesUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveLessonIDs(ids...)
 }
 
 // Where appends a list predicates to the CourseModulesUpdate builder.
@@ -297,6 +472,11 @@ func (_u *CourseModulesUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *CourseModulesUpdateOne) check() error {
+	if v, ok := _u.mutation.VersionID(); ok {
+		if err := coursemodules.VersionIDValidator(v); err != nil {
+			return &ValidationError{Name: "version_id", err: fmt.Errorf(`ent: validator failed for field "CourseModules.version_id": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Title(); ok {
 		if err := coursemodules.TitleValidator(v); err != nil {
 			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "CourseModules.title": %w`, err)}
@@ -306,6 +486,9 @@ func (_u *CourseModulesUpdateOne) check() error {
 		if err := coursemodules.SequenceOrderValidator(v); err != nil {
 			return &ValidationError{Name: "sequence_order", err: fmt.Errorf(`ent: validator failed for field "CourseModules.sequence_order": %w`, err)}
 		}
+	}
+	if _u.mutation.VersionCleared() && len(_u.mutation.VersionIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "CourseModules.version"`)
 	}
 	return nil
 }
@@ -342,9 +525,6 @@ func (_u *CourseModulesUpdateOne) sqlSave(ctx context.Context) (_node *CourseMod
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(coursemodules.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.VersionID(); ok {
-		_spec.SetField(coursemodules.FieldVersionID, field.TypeString, value)
-	}
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(coursemodules.FieldTitle, field.TypeString, value)
 	}
@@ -353,6 +533,80 @@ func (_u *CourseModulesUpdateOne) sqlSave(ctx context.Context) (_node *CourseMod
 	}
 	if value, ok := _u.mutation.AddedSequenceOrder(); ok {
 		_spec.AddField(coursemodules.FieldSequenceOrder, field.TypeInt, value)
+	}
+	if _u.mutation.VersionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   coursemodules.VersionTable,
+			Columns: []string{coursemodules.VersionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(courseversions.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.VersionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   coursemodules.VersionTable,
+			Columns: []string{coursemodules.VersionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(courseversions.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.LessonsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   coursemodules.LessonsTable,
+			Columns: []string{coursemodules.LessonsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessons.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedLessonsIDs(); len(nodes) > 0 && !_u.mutation.LessonsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   coursemodules.LessonsTable,
+			Columns: []string{coursemodules.LessonsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessons.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.LessonsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   coursemodules.LessonsTable,
+			Columns: []string{coursemodules.LessonsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessons.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &CourseModules{config: _u.config}
 	_spec.Assign = _node.assignValues

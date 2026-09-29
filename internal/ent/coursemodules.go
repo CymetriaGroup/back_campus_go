@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"hexagonal-go-backend/internal/ent/coursemodules"
+	"hexagonal-go-backend/internal/ent/courseversions"
 	"strings"
 	"time"
 
@@ -27,7 +28,41 @@ type CourseModules struct {
 	Title string `json:"title,omitempty"`
 	// SequenceOrder holds the value of the "sequence_order" field.
 	SequenceOrder int `json:"sequence_order,omitempty"`
-	selectValues  sql.SelectValues
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the CourseModulesQuery when eager-loading is set.
+	Edges        CourseModulesEdges `json:"edges"`
+	selectValues sql.SelectValues
+}
+
+// CourseModulesEdges holds the relations/edges for other nodes in the graph.
+type CourseModulesEdges struct {
+	// Version holds the value of the version edge.
+	Version *CourseVersions `json:"version,omitempty"`
+	// Lessons holds the value of the lessons edge.
+	Lessons []*Lessons `json:"lessons,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// VersionOrErr returns the Version value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CourseModulesEdges) VersionOrErr() (*CourseVersions, error) {
+	if e.Version != nil {
+		return e.Version, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: courseversions.Label}
+	}
+	return nil, &NotLoadedError{edge: "version"}
+}
+
+// LessonsOrErr returns the Lessons value or an error if the edge
+// was not loaded in eager-loading.
+func (e CourseModulesEdges) LessonsOrErr() ([]*Lessons, error) {
+	if e.loadedTypes[1] {
+		return e.Lessons, nil
+	}
+	return nil, &NotLoadedError{edge: "lessons"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -103,6 +138,16 @@ func (_m *CourseModules) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *CourseModules) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryVersion queries the "version" edge of the CourseModules entity.
+func (_m *CourseModules) QueryVersion() *CourseVersionsQuery {
+	return NewCourseModulesClient(_m.config).QueryVersion(_m)
+}
+
+// QueryLessons queries the "lessons" edge of the CourseModules entity.
+func (_m *CourseModules) QueryLessons() *LessonsQuery {
+	return NewCourseModulesClient(_m.config).QueryLessons(_m)
 }
 
 // Update returns a builder for updating this CourseModules.

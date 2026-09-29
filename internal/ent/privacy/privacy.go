@@ -110,6 +110,30 @@ func DenyMutationOperationRule(op ent.Op) MutationRule {
 	return OnMutationOperation(rule, op)
 }
 
+// The ActivitiesQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ActivitiesQueryRuleFunc func(context.Context, *ent.ActivitiesQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f ActivitiesQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ActivitiesQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.ActivitiesQuery", q)
+}
+
+// The ActivitiesMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ActivitiesMutationRuleFunc func(context.Context, *ent.ActivitiesMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f ActivitiesMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.ActivitiesMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ActivitiesMutation", m)
+}
+
 // The CourseCategoriesQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type CourseCategoriesQueryRuleFunc func(context.Context, *ent.CourseCategoriesQuery) error
@@ -156,6 +180,30 @@ func (f CourseModulesMutationRuleFunc) EvalMutation(ctx context.Context, m ent.M
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CourseModulesMutation", m)
+}
+
+// The CourseResourcesQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type CourseResourcesQueryRuleFunc func(context.Context, *ent.CourseResourcesQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f CourseResourcesQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CourseResourcesQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.CourseResourcesQuery", q)
+}
+
+// The CourseResourcesMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type CourseResourcesMutationRuleFunc func(context.Context, *ent.CourseResourcesMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f CourseResourcesMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.CourseResourcesMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CourseResourcesMutation", m)
 }
 
 // The CourseTemplatesQueryRuleFunc type is an adapter to allow the use of ordinary

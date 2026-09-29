@@ -32,6 +32,7 @@ func (CourseVersions) Edges() []ent.Edge {
 			Unique().
 			Required(),
 		edge.To("syllabi", Syllabi.Type),
+		edge.To("modules", CourseModules.Type),
 	}
 }
 

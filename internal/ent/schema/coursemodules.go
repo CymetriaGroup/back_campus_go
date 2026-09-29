@@ -4,6 +4,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
+
+	"hexagonal-go-backend/internal/platform/identifier"
 )
 
 // CourseModules holds the schema definition for the CourseModules entity.
@@ -14,9 +17,9 @@ type CourseModules struct {
 // Fields of the CourseModules.
 func (CourseModules) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("version_id").Unique(),
+		field.String("version_id").MinLen(identifier.Length).MaxLen(identifier.Length).Validate(identifier.Validate),
 		field.String("title").NotEmpty(),
-		field.Int("sequence_order").Positive().NonNegative(),
+		field.Int("sequence_order").NonNegative(),
 	}
 }
 
@@ -29,6 +32,12 @@ func (CourseModules) Edges() []ent.Edge {
 			Unique().
 			Required(),
 		edge.To("lessons", Lessons.Type),
+	}
+}
+
+func (CourseModules) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("version_id", "sequence_order").Unique(),
 	}
 }
 

@@ -4,6 +4,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
+
+	"hexagonal-go-backend/internal/platform/identifier"
 )
 
 // Lessons holds the schema definition for the Lessons entity.
@@ -14,9 +17,9 @@ type Lessons struct {
 // Fields of the Lessons.
 func (Lessons) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("module_id").Unique(),
+		field.String("module_id").MinLen(identifier.Length).MaxLen(identifier.Length).Validate(identifier.Validate),
 		field.String("title").NotEmpty().MaxLen(500),
-		field.Int("sequence_order").Positive().NonNegative(),
+		field.Int("sequence_order").NonNegative(),
 	}
 }
 
@@ -28,6 +31,13 @@ func (Lessons) Edges() []ent.Edge {
 			Field("module_id").
 			Unique().
 			Required(),
+		edge.To("activities", Activities.Type),
+	}
+}
+
+func (Lessons) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("module_id", "sequence_order").Unique(),
 	}
 }
 

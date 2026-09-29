@@ -8,6 +8,18 @@ import (
 	"hexagonal-go-backend/internal/ent"
 )
 
+// The ActivitiesFunc type is an adapter to allow the use of ordinary
+// function as Activities mutator.
+type ActivitiesFunc func(context.Context, *ent.ActivitiesMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ActivitiesFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ActivitiesMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ActivitiesMutation", m)
+}
+
 // The CourseCategoriesFunc type is an adapter to allow the use of ordinary
 // function as CourseCategories mutator.
 type CourseCategoriesFunc func(context.Context, *ent.CourseCategoriesMutation) (ent.Value, error)
@@ -30,6 +42,18 @@ func (f CourseModulesFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CourseModulesMutation", m)
+}
+
+// The CourseResourcesFunc type is an adapter to allow the use of ordinary
+// function as CourseResources mutator.
+type CourseResourcesFunc func(context.Context, *ent.CourseResourcesMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CourseResourcesFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CourseResourcesMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CourseResourcesMutation", m)
 }
 
 // The CourseTemplatesFunc type is an adapter to allow the use of ordinary

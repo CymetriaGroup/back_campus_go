@@ -13,6 +13,9 @@ import (
 	authhttp "hexagonal-go-backend/internal/modules/auth/delivery/http/v1"
 	memorycache "hexagonal-go-backend/internal/modules/auth/infrastructure/cache/memory"
 	authsecurity "hexagonal-go-backend/internal/modules/auth/infrastructure/security"
+	coursesapp "hexagonal-go-backend/internal/modules/courses/application"
+	courseshttp "hexagonal-go-backend/internal/modules/courses/delivery/http/v1"
+	coursepostgres "hexagonal-go-backend/internal/modules/courses/infrastructure/persistence/postgres"
 	usersapp "hexagonal-go-backend/internal/modules/users/application"
 	usershttp "hexagonal-go-backend/internal/modules/users/delivery/http/v1"
 	userdomain "hexagonal-go-backend/internal/modules/users/domain"
@@ -65,6 +68,7 @@ func main() {
 		usershttp.NewController(userService),
 		authhttp.NewController(authService),
 		tokenProvider,
+		courseshttp.NewController(coursesapp.NewService(coursepostgres.NewRepository(entClient))),
 	)
 	httpServer := server.New(router, cfg.App)
 

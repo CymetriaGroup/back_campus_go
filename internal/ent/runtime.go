@@ -3,10 +3,13 @@
 package ent
 
 import (
+	"hexagonal-go-backend/internal/ent/activities"
 	"hexagonal-go-backend/internal/ent/coursecategories"
 	"hexagonal-go-backend/internal/ent/coursemodules"
+	"hexagonal-go-backend/internal/ent/courseresources"
 	"hexagonal-go-backend/internal/ent/coursetemplates"
 	"hexagonal-go-backend/internal/ent/courseversions"
+	"hexagonal-go-backend/internal/ent/lessons"
 	"hexagonal-go-backend/internal/ent/schema"
 	"hexagonal-go-backend/internal/ent/syllabi"
 	"hexagonal-go-backend/internal/ent/user"
@@ -17,6 +20,79 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	activitiesMixin := schema.Activities{}.Mixin()
+	activitiesMixinFields0 := activitiesMixin[0].Fields()
+	_ = activitiesMixinFields0
+	activitiesMixinFields1 := activitiesMixin[1].Fields()
+	_ = activitiesMixinFields1
+	activitiesFields := schema.Activities{}.Fields()
+	_ = activitiesFields
+	// activitiesDescCreatedAt is the schema descriptor for created_at field.
+	activitiesDescCreatedAt := activitiesMixinFields1[0].Descriptor()
+	// activities.DefaultCreatedAt holds the default value on creation for the created_at field.
+	activities.DefaultCreatedAt = activitiesDescCreatedAt.Default.(func() time.Time)
+	// activitiesDescUpdatedAt is the schema descriptor for updated_at field.
+	activitiesDescUpdatedAt := activitiesMixinFields1[1].Descriptor()
+	// activities.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	activities.DefaultUpdatedAt = activitiesDescUpdatedAt.Default.(time.Time)
+	// activities.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	activities.UpdateDefaultUpdatedAt = activitiesDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// activitiesDescLessonID is the schema descriptor for lesson_id field.
+	activitiesDescLessonID := activitiesFields[0].Descriptor()
+	// activities.LessonIDValidator is a validator for the "lesson_id" field. It is called by the builders before save.
+	activities.LessonIDValidator = func() func(string) error {
+		validators := activitiesDescLessonID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(lesson string) error {
+			for _, fn := range fns {
+				if err := fn(lesson); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// activitiesDescTitle is the schema descriptor for title field.
+	activitiesDescTitle := activitiesFields[1].Descriptor()
+	// activities.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	activities.TitleValidator = activitiesDescTitle.Validators[0].(func(string) error)
+	// activitiesDescType is the schema descriptor for type field.
+	activitiesDescType := activitiesFields[2].Descriptor()
+	// activities.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	activities.TypeValidator = activitiesDescType.Validators[0].(func(string) error)
+	// activitiesDescIsRequired is the schema descriptor for is_required field.
+	activitiesDescIsRequired := activitiesFields[3].Descriptor()
+	// activities.DefaultIsRequired holds the default value on creation for the is_required field.
+	activities.DefaultIsRequired = activitiesDescIsRequired.Default.(bool)
+	// activitiesDescSequenceOrder is the schema descriptor for sequence_order field.
+	activitiesDescSequenceOrder := activitiesFields[4].Descriptor()
+	// activities.SequenceOrderValidator is a validator for the "sequence_order" field. It is called by the builders before save.
+	activities.SequenceOrderValidator = activitiesDescSequenceOrder.Validators[0].(func(int) error)
+	// activitiesDescID is the schema descriptor for id field.
+	activitiesDescID := activitiesMixinFields0[0].Descriptor()
+	// activities.DefaultID holds the default value on creation for the id field.
+	activities.DefaultID = activitiesDescID.Default.(func() string)
+	// activities.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	activities.IDValidator = func() func(string) error {
+		validators := activitiesDescID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(id string) error {
+			for _, fn := range fns {
+				if err := fn(id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	coursecategoriesMixin := schema.CourseCategories{}.Mixin()
 	coursecategoriesMixinFields0 := coursecategoriesMixin[0].Fields()
 	_ = coursecategoriesMixinFields0
@@ -152,6 +228,25 @@ func init() {
 	coursemodules.DefaultUpdatedAt = coursemodulesDescUpdatedAt.Default.(time.Time)
 	// coursemodules.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	coursemodules.UpdateDefaultUpdatedAt = coursemodulesDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// coursemodulesDescVersionID is the schema descriptor for version_id field.
+	coursemodulesDescVersionID := coursemodulesFields[0].Descriptor()
+	// coursemodules.VersionIDValidator is a validator for the "version_id" field. It is called by the builders before save.
+	coursemodules.VersionIDValidator = func() func(string) error {
+		validators := coursemodulesDescVersionID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(version string) error {
+			for _, fn := range fns {
+				if err := fn(version); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// coursemodulesDescTitle is the schema descriptor for title field.
 	coursemodulesDescTitle := coursemodulesFields[1].Descriptor()
 	// coursemodules.TitleValidator is a validator for the "title" field. It is called by the builders before save.
@@ -159,21 +254,7 @@ func init() {
 	// coursemodulesDescSequenceOrder is the schema descriptor for sequence_order field.
 	coursemodulesDescSequenceOrder := coursemodulesFields[2].Descriptor()
 	// coursemodules.SequenceOrderValidator is a validator for the "sequence_order" field. It is called by the builders before save.
-	coursemodules.SequenceOrderValidator = func() func(int) error {
-		validators := coursemodulesDescSequenceOrder.Validators
-		fns := [...]func(int) error{
-			validators[0].(func(int) error),
-			validators[1].(func(int) error),
-		}
-		return func(sequence_order int) error {
-			for _, fn := range fns {
-				if err := fn(sequence_order); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	coursemodules.SequenceOrderValidator = coursemodulesDescSequenceOrder.Validators[0].(func(int) error)
 	// coursemodulesDescID is the schema descriptor for id field.
 	coursemodulesDescID := coursemodulesMixinFields0[0].Descriptor()
 	// coursemodules.DefaultID holds the default value on creation for the id field.
@@ -181,6 +262,87 @@ func init() {
 	// coursemodules.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	coursemodules.IDValidator = func() func(string) error {
 		validators := coursemodulesDescID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(id string) error {
+			for _, fn := range fns {
+				if err := fn(id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	courseresourcesMixin := schema.CourseResources{}.Mixin()
+	courseresourcesMixinFields0 := courseresourcesMixin[0].Fields()
+	_ = courseresourcesMixinFields0
+	courseresourcesMixinFields1 := courseresourcesMixin[1].Fields()
+	_ = courseresourcesMixinFields1
+	courseresourcesFields := schema.CourseResources{}.Fields()
+	_ = courseresourcesFields
+	// courseresourcesDescCreatedAt is the schema descriptor for created_at field.
+	courseresourcesDescCreatedAt := courseresourcesMixinFields1[0].Descriptor()
+	// courseresources.DefaultCreatedAt holds the default value on creation for the created_at field.
+	courseresources.DefaultCreatedAt = courseresourcesDescCreatedAt.Default.(func() time.Time)
+	// courseresourcesDescUpdatedAt is the schema descriptor for updated_at field.
+	courseresourcesDescUpdatedAt := courseresourcesMixinFields1[1].Descriptor()
+	// courseresources.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	courseresources.DefaultUpdatedAt = courseresourcesDescUpdatedAt.Default.(time.Time)
+	// courseresources.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	courseresources.UpdateDefaultUpdatedAt = courseresourcesDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// courseresourcesDescActivityID is the schema descriptor for activity_id field.
+	courseresourcesDescActivityID := courseresourcesFields[0].Descriptor()
+	// courseresources.ActivityIDValidator is a validator for the "activity_id" field. It is called by the builders before save.
+	courseresources.ActivityIDValidator = func() func(string) error {
+		validators := courseresourcesDescActivityID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(activity string) error {
+			for _, fn := range fns {
+				if err := fn(activity); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// courseresourcesDescType is the schema descriptor for type field.
+	courseresourcesDescType := courseresourcesFields[1].Descriptor()
+	// courseresources.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	courseresources.TypeValidator = courseresourcesDescType.Validators[0].(func(string) error)
+	// courseresourcesDescName is the schema descriptor for name field.
+	courseresourcesDescName := courseresourcesFields[2].Descriptor()
+	// courseresources.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	courseresources.NameValidator = courseresourcesDescName.Validators[0].(func(string) error)
+	// courseresourcesDescURLStorageKey is the schema descriptor for url_storage_key field.
+	courseresourcesDescURLStorageKey := courseresourcesFields[3].Descriptor()
+	// courseresources.URLStorageKeyValidator is a validator for the "url_storage_key" field. It is called by the builders before save.
+	courseresources.URLStorageKeyValidator = courseresourcesDescURLStorageKey.Validators[0].(func(string) error)
+	// courseresourcesDescMimeType is the schema descriptor for mime_type field.
+	courseresourcesDescMimeType := courseresourcesFields[4].Descriptor()
+	// courseresources.MimeTypeValidator is a validator for the "mime_type" field. It is called by the builders before save.
+	courseresources.MimeTypeValidator = courseresourcesDescMimeType.Validators[0].(func(string) error)
+	// courseresourcesDescSizeBytes is the schema descriptor for size_bytes field.
+	courseresourcesDescSizeBytes := courseresourcesFields[5].Descriptor()
+	// courseresources.SizeBytesValidator is a validator for the "size_bytes" field. It is called by the builders before save.
+	courseresources.SizeBytesValidator = courseresourcesDescSizeBytes.Validators[0].(func(int64) error)
+	// courseresourcesDescPosition is the schema descriptor for position field.
+	courseresourcesDescPosition := courseresourcesFields[6].Descriptor()
+	// courseresources.PositionValidator is a validator for the "position" field. It is called by the builders before save.
+	courseresources.PositionValidator = courseresourcesDescPosition.Validators[0].(func(int) error)
+	// courseresourcesDescID is the schema descriptor for id field.
+	courseresourcesDescID := courseresourcesMixinFields0[0].Descriptor()
+	// courseresources.DefaultID holds the default value on creation for the id field.
+	courseresources.DefaultID = courseresourcesDescID.Default.(func() string)
+	// courseresources.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	courseresources.IDValidator = func() func(string) error {
+		validators := courseresourcesDescID.Validators
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),
@@ -358,6 +520,85 @@ func init() {
 	// courseversions.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	courseversions.IDValidator = func() func(string) error {
 		validators := courseversionsDescID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(id string) error {
+			for _, fn := range fns {
+				if err := fn(id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	lessonsMixin := schema.Lessons{}.Mixin()
+	lessonsMixinFields0 := lessonsMixin[0].Fields()
+	_ = lessonsMixinFields0
+	lessonsMixinFields1 := lessonsMixin[1].Fields()
+	_ = lessonsMixinFields1
+	lessonsFields := schema.Lessons{}.Fields()
+	_ = lessonsFields
+	// lessonsDescCreatedAt is the schema descriptor for created_at field.
+	lessonsDescCreatedAt := lessonsMixinFields1[0].Descriptor()
+	// lessons.DefaultCreatedAt holds the default value on creation for the created_at field.
+	lessons.DefaultCreatedAt = lessonsDescCreatedAt.Default.(func() time.Time)
+	// lessonsDescUpdatedAt is the schema descriptor for updated_at field.
+	lessonsDescUpdatedAt := lessonsMixinFields1[1].Descriptor()
+	// lessons.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	lessons.DefaultUpdatedAt = lessonsDescUpdatedAt.Default.(time.Time)
+	// lessons.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	lessons.UpdateDefaultUpdatedAt = lessonsDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// lessonsDescModuleID is the schema descriptor for module_id field.
+	lessonsDescModuleID := lessonsFields[0].Descriptor()
+	// lessons.ModuleIDValidator is a validator for the "module_id" field. It is called by the builders before save.
+	lessons.ModuleIDValidator = func() func(string) error {
+		validators := lessonsDescModuleID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(module string) error {
+			for _, fn := range fns {
+				if err := fn(module); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// lessonsDescTitle is the schema descriptor for title field.
+	lessonsDescTitle := lessonsFields[1].Descriptor()
+	// lessons.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	lessons.TitleValidator = func() func(string) error {
+		validators := lessonsDescTitle.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(title string) error {
+			for _, fn := range fns {
+				if err := fn(title); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// lessonsDescSequenceOrder is the schema descriptor for sequence_order field.
+	lessonsDescSequenceOrder := lessonsFields[2].Descriptor()
+	// lessons.SequenceOrderValidator is a validator for the "sequence_order" field. It is called by the builders before save.
+	lessons.SequenceOrderValidator = lessonsDescSequenceOrder.Validators[0].(func(int) error)
+	// lessonsDescID is the schema descriptor for id field.
+	lessonsDescID := lessonsMixinFields0[0].Descriptor()
+	// lessons.DefaultID holds the default value on creation for the id field.
+	lessons.DefaultID = lessonsDescID.Default.(func() string)
+	// lessons.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	lessons.IDValidator = func() func(string) error {
+		validators := lessonsDescID.Validators
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),

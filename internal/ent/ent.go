@@ -6,8 +6,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hexagonal-go-backend/internal/ent/activities"
 	"hexagonal-go-backend/internal/ent/coursecategories"
 	"hexagonal-go-backend/internal/ent/coursemodules"
+	"hexagonal-go-backend/internal/ent/courseresources"
 	"hexagonal-go-backend/internal/ent/coursetemplates"
 	"hexagonal-go-backend/internal/ent/courseversions"
 	"hexagonal-go-backend/internal/ent/lessons"
@@ -79,8 +81,10 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			activities.Table:       activities.ValidColumn,
 			coursecategories.Table: coursecategories.ValidColumn,
 			coursemodules.Table:    coursemodules.ValidColumn,
+			courseresources.Table:  courseresources.ValidColumn,
 			coursetemplates.Table:  coursetemplates.ValidColumn,
 			courseversions.Table:   courseversions.ValidColumn,
 			lessons.Table:          lessons.ValidColumn,

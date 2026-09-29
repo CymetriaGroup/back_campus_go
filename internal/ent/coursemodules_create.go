@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"hexagonal-go-backend/internal/ent/coursemodules"
+	"hexagonal-go-backend/internal/ent/courseversions"
+	"hexagonal-go-backend/internal/ent/lessons"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -80,6 +82,26 @@ func (_c *CourseModulesCreate) SetNillableID(v *string) *CourseModulesCreate {
 	return _c
 }
 
+// SetVersion sets the "version" edge to the CourseVersions entity.
+func (_c *CourseModulesCreate) SetVersion(v *CourseVersions) *CourseModulesCreate {
+	return _c.SetVersionID(v.ID)
+}
+
+// AddLessonIDs adds the "lessons" edge to the Lessons entity by IDs.
+func (_c *CourseModulesCreate) AddLessonIDs(ids ...string) *CourseModulesCreate {
+	_c.mutation.AddLessonIDs(ids...)
+	return _c
+}
+
+// AddLessons adds the "lessons" edges to the Lessons entity.
+func (_c *CourseModulesCreate) AddLessons(v ...*Lessons) *CourseModulesCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddLessonIDs(ids...)
+}
+
 // Mutation returns the CourseModulesMutation object of the builder.
 func (_c *CourseModulesCreate) Mutation() *CourseModulesMutation {
 	return _c.mutation
@@ -140,6 +162,11 @@ func (_c *CourseModulesCreate) check() error {
 	if _, ok := _c.mutation.VersionID(); !ok {
 		return &ValidationError{Name: "version_id", err: errors.New(`ent: missing required field "CourseModules.version_id"`)}
 	}
+	if v, ok := _c.mutation.VersionID(); ok {
+		if err := coursemodules.VersionIDValidator(v); err != nil {
+			return &ValidationError{Name: "version_id", err: fmt.Errorf(`ent: validator failed for field "CourseModules.version_id": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Title(); !ok {
 		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "CourseModules.title"`)}
 	}
@@ -160,6 +187,9 @@ func (_c *CourseModulesCreate) check() error {
 		if err := coursemodules.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "CourseModules.id": %w`, err)}
 		}
+	}
+	if len(_c.mutation.VersionIDs()) == 0 {
+		return &ValidationError{Name: "version", err: errors.New(`ent: missing required edge "CourseModules.version"`)}
 	}
 	return nil
 }
@@ -204,10 +234,6 @@ func (_c *CourseModulesCreate) createSpec() (*CourseModules, *sqlgraph.CreateSpe
 		_spec.SetField(coursemodules.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if value, ok := _c.mutation.VersionID(); ok {
-		_spec.SetField(coursemodules.FieldVersionID, field.TypeString, value)
-		_node.VersionID = value
-	}
 	if value, ok := _c.mutation.Title(); ok {
 		_spec.SetField(coursemodules.FieldTitle, field.TypeString, value)
 		_node.Title = value
@@ -215,6 +241,39 @@ func (_c *CourseModulesCreate) createSpec() (*CourseModules, *sqlgraph.CreateSpe
 	if value, ok := _c.mutation.SequenceOrder(); ok {
 		_spec.SetField(coursemodules.FieldSequenceOrder, field.TypeInt, value)
 		_node.SequenceOrder = value
+	}
+	if nodes := _c.mutation.VersionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   coursemodules.VersionTable,
+			Columns: []string{coursemodules.VersionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(courseversions.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.VersionID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.LessonsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   coursemodules.LessonsTable,
+			Columns: []string{coursemodules.LessonsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessons.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

@@ -4,7 +4,10 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
+	"hexagonal-go-backend/internal/ent/activities"
+	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/lessons"
 	"hexagonal-go-backend/internal/ent/predicate"
 	"math"
@@ -18,10 +21,12 @@ import (
 // LessonsQuery is the builder for querying Lessons entities.
 type LessonsQuery struct {
 	config
-	ctx        *QueryContext
-	order      []lessons.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Lessons
+	ctx            *QueryContext
+	order          []lessons.OrderOption
+	inters         []Interceptor
+	predicates     []predicate.Lessons
+	withModule     *CourseModulesQuery
+	withActivities *ActivitiesQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -58,6 +63,50 @@ func (_q *LessonsQuery) Order(o ...lessons.OrderOption) *LessonsQuery {
 	return _q
 }
 
+// QueryModule chains the current query on the "module" edge.
+func (_q *LessonsQuery) QueryModule() *CourseModulesQuery {
+	query := (&CourseModulesClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessons.Table, lessons.FieldID, selector),
+			sqlgraph.To(coursemodules.Table, coursemodules.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, lessons.ModuleTable, lessons.ModuleColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryActivities chains the current query on the "activities" edge.
+func (_q *LessonsQuery) QueryActivities() *ActivitiesQuery {
+	query := (&ActivitiesClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessons.Table, lessons.FieldID, selector),
+			sqlgraph.To(activities.Table, activities.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessons.ActivitiesTable, lessons.ActivitiesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Lessons entity from the query.
 // Returns a *NotFoundError when no Lessons was found.
 func (_q *LessonsQuery) First(ctx context.Context) (*Lessons, error) {
@@ -82,8 +131,8 @@ func (_q *LessonsQuery) FirstX(ctx context.Context) *Lessons {
 
 // FirstID returns the first Lessons ID from the query.
 // Returns a *NotFoundError when no Lessons ID was found.
-func (_q *LessonsQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *LessonsQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -95,7 +144,7 @@ func (_q *LessonsQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *LessonsQuery) FirstIDX(ctx context.Context) int {
+func (_q *LessonsQuery) FirstIDX(ctx context.Context) string {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -133,8 +182,8 @@ func (_q *LessonsQuery) OnlyX(ctx context.Context) *Lessons {
 // OnlyID is like Only, but returns the only Lessons ID in the query.
 // Returns a *NotSingularError when more than one Lessons ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *LessonsQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *LessonsQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -150,7 +199,7 @@ func (_q *LessonsQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *LessonsQuery) OnlyIDX(ctx context.Context) int {
+func (_q *LessonsQuery) OnlyIDX(ctx context.Context) string {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -178,7 +227,7 @@ func (_q *LessonsQuery) AllX(ctx context.Context) []*Lessons {
 }
 
 // IDs executes the query and returns a list of Lessons IDs.
-func (_q *LessonsQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (_q *LessonsQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
@@ -190,7 +239,7 @@ func (_q *LessonsQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *LessonsQuery) IDsX(ctx context.Context) []int {
+func (_q *LessonsQuery) IDsX(ctx context.Context) []string {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -245,19 +294,55 @@ func (_q *LessonsQuery) Clone() *LessonsQuery {
 		return nil
 	}
 	return &LessonsQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]lessons.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Lessons{}, _q.predicates...),
+		config:         _q.config,
+		ctx:            _q.ctx.Clone(),
+		order:          append([]lessons.OrderOption{}, _q.order...),
+		inters:         append([]Interceptor{}, _q.inters...),
+		predicates:     append([]predicate.Lessons{}, _q.predicates...),
+		withModule:     _q.withModule.Clone(),
+		withActivities: _q.withActivities.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
 }
 
+// WithModule tells the query-builder to eager-load the nodes that are connected to
+// the "module" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *LessonsQuery) WithModule(opts ...func(*CourseModulesQuery)) *LessonsQuery {
+	query := (&CourseModulesClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withModule = query
+	return _q
+}
+
+// WithActivities tells the query-builder to eager-load the nodes that are connected to
+// the "activities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *LessonsQuery) WithActivities(opts ...func(*ActivitiesQuery)) *LessonsQuery {
+	query := (&ActivitiesClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withActivities = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
+//
+// Example:
+//
+//	var v []struct {
+//		CreatedAt time.Time `json:"created_at,omitempty"`
+//		Count int `json:"count,omitempty"`
+//	}
+//
+//	client.Lessons.Query().
+//		GroupBy(lessons.FieldCreatedAt).
+//		Aggregate(ent.Count()).
+//		Scan(ctx, &v)
 func (_q *LessonsQuery) GroupBy(field string, fields ...string) *LessonsGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &LessonsGroupBy{build: _q}
@@ -269,6 +354,16 @@ func (_q *LessonsQuery) GroupBy(field string, fields ...string) *LessonsGroupBy 
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
+//
+// Example:
+//
+//	var v []struct {
+//		CreatedAt time.Time `json:"created_at,omitempty"`
+//	}
+//
+//	client.Lessons.Query().
+//		Select(lessons.FieldCreatedAt).
+//		Scan(ctx, &v)
 func (_q *LessonsQuery) Select(fields ...string) *LessonsSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
 	sbuild := &LessonsSelect{LessonsQuery: _q}
@@ -310,8 +405,12 @@ func (_q *LessonsQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *LessonsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Lessons, error) {
 	var (
-		nodes = []*Lessons{}
-		_spec = _q.querySpec()
+		nodes       = []*Lessons{}
+		_spec       = _q.querySpec()
+		loadedTypes = [2]bool{
+			_q.withModule != nil,
+			_q.withActivities != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Lessons).scanValues(nil, columns)
@@ -319,6 +418,7 @@ func (_q *LessonsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Less
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Lessons{config: _q.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -330,7 +430,80 @@ func (_q *LessonsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Less
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withModule; query != nil {
+		if err := _q.loadModule(ctx, query, nodes, nil,
+			func(n *Lessons, e *CourseModules) { n.Edges.Module = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withActivities; query != nil {
+		if err := _q.loadActivities(ctx, query, nodes,
+			func(n *Lessons) { n.Edges.Activities = []*Activities{} },
+			func(n *Lessons, e *Activities) { n.Edges.Activities = append(n.Edges.Activities, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (_q *LessonsQuery) loadModule(ctx context.Context, query *CourseModulesQuery, nodes []*Lessons, init func(*Lessons), assign func(*Lessons, *CourseModules)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Lessons)
+	for i := range nodes {
+		fk := nodes[i].ModuleID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(coursemodules.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "module_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *LessonsQuery) loadActivities(ctx context.Context, query *ActivitiesQuery, nodes []*Lessons, init func(*Lessons), assign func(*Lessons, *Activities)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Lessons)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(activities.FieldLessonID)
+	}
+	query.Where(predicate.Activities(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(lessons.ActivitiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.LessonID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "lesson_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (_q *LessonsQuery) sqlCount(ctx context.Context) (int, error) {
@@ -343,7 +516,7 @@ func (_q *LessonsQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (_q *LessonsQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(lessons.Table, lessons.Columns, sqlgraph.NewFieldSpec(lessons.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(lessons.Table, lessons.Columns, sqlgraph.NewFieldSpec(lessons.FieldID, field.TypeString))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -357,6 +530,9 @@ func (_q *LessonsQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != lessons.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withModule != nil {
+			_spec.Node.AddColumnOnce(lessons.FieldModuleID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

@@ -8,6 +8,38 @@ import (
 )
 
 var (
+	// ActivitiesColumns holds the columns for the "activities" table.
+	ActivitiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Size: 26},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "title", Type: field.TypeString},
+		{Name: "type", Type: field.TypeString},
+		{Name: "is_required", Type: field.TypeBool, Default: true},
+		{Name: "sequence_order", Type: field.TypeInt},
+		{Name: "lesson_id", Type: field.TypeString, Size: 26},
+	}
+	// ActivitiesTable holds the schema information for the "activities" table.
+	ActivitiesTable = &schema.Table{
+		Name:       "activities",
+		Columns:    ActivitiesColumns,
+		PrimaryKey: []*schema.Column{ActivitiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "activities_lessons_activities",
+				Columns:    []*schema.Column{ActivitiesColumns[7]},
+				RefColumns: []*schema.Column{LessonsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "activities_lesson_id_sequence_order",
+				Unique:  true,
+				Columns: []*schema.Column{ActivitiesColumns[7], ActivitiesColumns[6]},
+			},
+		},
+	}
 	// CourseCategoriesColumns holds the columns for the "course_categories" table.
 	CourseCategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Size: 26},
@@ -30,15 +62,65 @@ var (
 		{Name: "id", Type: field.TypeString, Size: 26},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "version_id", Type: field.TypeString, Unique: true},
 		{Name: "title", Type: field.TypeString},
 		{Name: "sequence_order", Type: field.TypeInt},
+		{Name: "version_id", Type: field.TypeString, Size: 26},
 	}
 	// CourseModulesTable holds the schema information for the "course_modules" table.
 	CourseModulesTable = &schema.Table{
 		Name:       "course_modules",
 		Columns:    CourseModulesColumns,
 		PrimaryKey: []*schema.Column{CourseModulesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "course_modules_course_versions_modules",
+				Columns:    []*schema.Column{CourseModulesColumns[5]},
+				RefColumns: []*schema.Column{CourseVersionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "coursemodules_version_id_sequence_order",
+				Unique:  true,
+				Columns: []*schema.Column{CourseModulesColumns[5], CourseModulesColumns[4]},
+			},
+		},
+	}
+	// CourseResourcesColumns holds the columns for the "course_resources" table.
+	CourseResourcesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Size: 26},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "type", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "url_storage_key", Type: field.TypeString},
+		{Name: "mime_type", Type: field.TypeString},
+		{Name: "size_bytes", Type: field.TypeInt64},
+		{Name: "position", Type: field.TypeInt},
+		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
+		{Name: "activity_id", Type: field.TypeString, Size: 26},
+	}
+	// CourseResourcesTable holds the schema information for the "course_resources" table.
+	CourseResourcesTable = &schema.Table{
+		Name:       "course_resources",
+		Columns:    CourseResourcesColumns,
+		PrimaryKey: []*schema.Column{CourseResourcesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "course_resources_activities_resources",
+				Columns:    []*schema.Column{CourseResourcesColumns[10]},
+				RefColumns: []*schema.Column{ActivitiesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "courseresources_activity_id_position",
+				Unique:  true,
+				Columns: []*schema.Column{CourseResourcesColumns[10], CourseResourcesColumns[8]},
+			},
+		},
 	}
 	// CourseTemplatesColumns holds the columns for the "course_templates" table.
 	CourseTemplatesColumns = []*schema.Column{
@@ -81,13 +163,33 @@ var (
 	}
 	// LessonsColumns holds the columns for the "lessons" table.
 	LessonsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeString, Size: 26},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "title", Type: field.TypeString, Size: 500},
+		{Name: "sequence_order", Type: field.TypeInt},
+		{Name: "module_id", Type: field.TypeString, Size: 26},
 	}
 	// LessonsTable holds the schema information for the "lessons" table.
 	LessonsTable = &schema.Table{
 		Name:       "lessons",
 		Columns:    LessonsColumns,
 		PrimaryKey: []*schema.Column{LessonsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "lessons_course_modules_lessons",
+				Columns:    []*schema.Column{LessonsColumns[5]},
+				RefColumns: []*schema.Column{CourseModulesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lessons_module_id_sequence_order",
+				Unique:  true,
+				Columns: []*schema.Column{LessonsColumns[5], LessonsColumns[4]},
+			},
+		},
 	}
 	// SyllabisColumns holds the columns for the "syllabis" table.
 	SyllabisColumns = []*schema.Column{
@@ -146,8 +248,10 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		ActivitiesTable,
 		CourseCategoriesTable,
 		CourseModulesTable,
+		CourseResourcesTable,
 		CourseTemplatesTable,
 		CourseVersionsTable,
 		LessonsTable,
@@ -157,6 +261,10 @@ var (
 )
 
 func init() {
+	ActivitiesTable.ForeignKeys[0].RefTable = LessonsTable
+	CourseModulesTable.ForeignKeys[0].RefTable = CourseVersionsTable
+	CourseResourcesTable.ForeignKeys[0].RefTable = ActivitiesTable
 	CourseVersionsTable.ForeignKeys[0].RefTable = CourseTemplatesTable
+	LessonsTable.ForeignKeys[0].RefTable = CourseModulesTable
 	SyllabisTable.ForeignKeys[0].RefTable = CourseVersionsTable
 }

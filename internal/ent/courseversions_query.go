@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
+	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/coursetemplates"
 	"hexagonal-go-backend/internal/ent/courseversions"
 	"hexagonal-go-backend/internal/ent/predicate"
@@ -27,6 +28,7 @@ type CourseVersionsQuery struct {
 	predicates   []predicate.CourseVersions
 	withTemplate *CourseTemplatesQuery
 	withSyllabi  *SyllabiQuery
+	withModules  *CourseModulesQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -100,6 +102,28 @@ func (_q *CourseVersionsQuery) QuerySyllabi() *SyllabiQuery {
 			sqlgraph.From(courseversions.Table, courseversions.FieldID, selector),
 			sqlgraph.To(syllabi.Table, syllabi.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, courseversions.SyllabiTable, courseversions.SyllabiColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryModules chains the current query on the "modules" edge.
+func (_q *CourseVersionsQuery) QueryModules() *CourseModulesQuery {
+	query := (&CourseModulesClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(courseversions.Table, courseversions.FieldID, selector),
+			sqlgraph.To(coursemodules.Table, coursemodules.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, courseversions.ModulesTable, courseversions.ModulesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -301,6 +325,7 @@ func (_q *CourseVersionsQuery) Clone() *CourseVersionsQuery {
 		predicates:   append([]predicate.CourseVersions{}, _q.predicates...),
 		withTemplate: _q.withTemplate.Clone(),
 		withSyllabi:  _q.withSyllabi.Clone(),
+		withModules:  _q.withModules.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -326,6 +351,17 @@ func (_q *CourseVersionsQuery) WithSyllabi(opts ...func(*SyllabiQuery)) *CourseV
 		opt(query)
 	}
 	_q.withSyllabi = query
+	return _q
+}
+
+// WithModules tells the query-builder to eager-load the nodes that are connected to
+// the "modules" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CourseVersionsQuery) WithModules(opts ...func(*CourseModulesQuery)) *CourseVersionsQuery {
+	query := (&CourseModulesClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withModules = query
 	return _q
 }
 
@@ -407,9 +443,10 @@ func (_q *CourseVersionsQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*CourseVersions{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withTemplate != nil,
 			_q.withSyllabi != nil,
+			_q.withModules != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -440,6 +477,13 @@ func (_q *CourseVersionsQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		if err := _q.loadSyllabi(ctx, query, nodes,
 			func(n *CourseVersions) { n.Edges.Syllabi = []*Syllabi{} },
 			func(n *CourseVersions, e *Syllabi) { n.Edges.Syllabi = append(n.Edges.Syllabi, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withModules; query != nil {
+		if err := _q.loadModules(ctx, query, nodes,
+			func(n *CourseVersions) { n.Edges.Modules = []*CourseModules{} },
+			func(n *CourseVersions, e *CourseModules) { n.Edges.Modules = append(n.Edges.Modules, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -490,6 +534,36 @@ func (_q *CourseVersionsQuery) loadSyllabi(ctx context.Context, query *SyllabiQu
 	}
 	query.Where(predicate.Syllabi(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(courseversions.SyllabiColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.VersionID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "version_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *CourseVersionsQuery) loadModules(ctx context.Context, query *CourseModulesQuery, nodes []*CourseVersions, init func(*CourseVersions), assign func(*CourseVersions, *CourseModules)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*CourseVersions)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(coursemodules.FieldVersionID)
+	}
+	query.Where(predicate.CourseModules(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(courseversions.ModulesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

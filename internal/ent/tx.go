@@ -12,10 +12,14 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Activities is the client for interacting with the Activities builders.
+	Activities *ActivitiesClient
 	// CourseCategories is the client for interacting with the CourseCategories builders.
 	CourseCategories *CourseCategoriesClient
 	// CourseModules is the client for interacting with the CourseModules builders.
 	CourseModules *CourseModulesClient
+	// CourseResources is the client for interacting with the CourseResources builders.
+	CourseResources *CourseResourcesClient
 	// CourseTemplates is the client for interacting with the CourseTemplates builders.
 	CourseTemplates *CourseTemplatesClient
 	// CourseVersions is the client for interacting with the CourseVersions builders.
@@ -157,8 +161,10 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Activities = NewActivitiesClient(tx.config)
 	tx.CourseCategories = NewCourseCategoriesClient(tx.config)
 	tx.CourseModules = NewCourseModulesClient(tx.config)
+	tx.CourseResources = NewCourseResourcesClient(tx.config)
 	tx.CourseTemplates = NewCourseTemplatesClient(tx.config)
 	tx.CourseVersions = NewCourseVersionsClient(tx.config)
 	tx.Lessons = NewLessonsClient(tx.config)
@@ -173,7 +179,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: CourseCategories.QueryXXX(), the query will be executed
+// applies a query, for example: Activities.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

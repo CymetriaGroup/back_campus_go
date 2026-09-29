@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -23,8 +24,26 @@ const (
 	FieldTitle = "title"
 	// FieldSequenceOrder holds the string denoting the sequence_order field in the database.
 	FieldSequenceOrder = "sequence_order"
+	// EdgeVersion holds the string denoting the version edge name in mutations.
+	EdgeVersion = "version"
+	// EdgeLessons holds the string denoting the lessons edge name in mutations.
+	EdgeLessons = "lessons"
 	// Table holds the table name of the coursemodules in the database.
 	Table = "course_modules"
+	// VersionTable is the table that holds the version relation/edge.
+	VersionTable = "course_modules"
+	// VersionInverseTable is the table name for the CourseVersions entity.
+	// It exists in this package in order to avoid circular dependency with the "courseversions" package.
+	VersionInverseTable = "course_versions"
+	// VersionColumn is the table column denoting the version relation/edge.
+	VersionColumn = "version_id"
+	// LessonsTable is the table that holds the lessons relation/edge.
+	LessonsTable = "lessons"
+	// LessonsInverseTable is the table name for the Lessons entity.
+	// It exists in this package in order to avoid circular dependency with the "lessons" package.
+	LessonsInverseTable = "lessons"
+	// LessonsColumn is the table column denoting the lessons relation/edge.
+	LessonsColumn = "module_id"
 )
 
 // Columns holds all SQL columns for coursemodules fields.
@@ -54,6 +73,8 @@ var (
 	DefaultUpdatedAt time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// VersionIDValidator is a validator for the "version_id" field. It is called by the builders before save.
+	VersionIDValidator func(string) error
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	TitleValidator func(string) error
 	// SequenceOrderValidator is a validator for the "sequence_order" field. It is called by the builders before save.
@@ -95,4 +116,39 @@ func ByTitle(opts ...sql.OrderTermOption) OrderOption {
 // BySequenceOrder orders the results by the sequence_order field.
 func BySequenceOrder(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSequenceOrder, opts...).ToFunc()
+}
+
+// ByVersionField orders the results by version field.
+func ByVersionField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVersionStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByLessonsCount orders the results by lessons count.
+func ByLessonsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLessonsStep(), opts...)
+	}
+}
+
+// ByLessons orders the results by lessons terms.
+func ByLessons(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLessonsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newVersionStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(VersionInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, VersionTable, VersionColumn),
+	)
+}
+func newLessonsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LessonsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LessonsTable, LessonsColumn),
+	)
 }

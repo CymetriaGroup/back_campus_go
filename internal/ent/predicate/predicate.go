@@ -6,11 +6,17 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Activities is the predicate function for activities builders.
+type Activities func(*sql.Selector)
+
 // CourseCategories is the predicate function for coursecategories builders.
 type CourseCategories func(*sql.Selector)
 
 // CourseModules is the predicate function for coursemodules builders.
 type CourseModules func(*sql.Selector)
+
+// CourseResources is the predicate function for courseresources builders.
+type CourseResources func(*sql.Selector)
 
 // CourseTemplates is the predicate function for coursetemplates builders.
 type CourseTemplates func(*sql.Selector)

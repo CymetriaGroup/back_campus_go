@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -337,6 +338,52 @@ func SequenceOrderLT(v int) predicate.CourseModules {
 // SequenceOrderLTE applies the LTE predicate on the "sequence_order" field.
 func SequenceOrderLTE(v int) predicate.CourseModules {
 	return predicate.CourseModules(sql.FieldLTE(FieldSequenceOrder, v))
+}
+
+// HasVersion applies the HasEdge predicate on the "version" edge.
+func HasVersion() predicate.CourseModules {
+	return predicate.CourseModules(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, VersionTable, VersionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasVersionWith applies the HasEdge predicate on the "version" edge with a given conditions (other predicates).
+func HasVersionWith(preds ...predicate.CourseVersions) predicate.CourseModules {
+	return predicate.CourseModules(func(s *sql.Selector) {
+		step := newVersionStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLessons applies the HasEdge predicate on the "lessons" edge.
+func HasLessons() predicate.CourseModules {
+	return predicate.CourseModules(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, LessonsTable, LessonsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLessonsWith applies the HasEdge predicate on the "lessons" edge with a given conditions (other predicates).
+func HasLessonsWith(preds ...predicate.Lessons) predicate.CourseModules {
+	return predicate.CourseModules(func(s *sql.Selector) {
+		step := newLessonsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.
