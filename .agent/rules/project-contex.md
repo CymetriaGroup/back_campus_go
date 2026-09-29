@@ -48,6 +48,10 @@ Los módulos representan capacidades o bounded contexts del negocio, no tablas n
 - Los tipos con tags `json`, `binding`, `form` o `uri` deben mantenerse en Delivery.
 - Un controller traduce `HTTP request -> input de aplicación` y `resultado de aplicación -> HTTP response`.
 - Se puede usar `controller.go` en módulos pequeños y dividir en `controllers/`, `requests/` y `responses/` cuando el tamaño lo justifique.
+- **Documentación OpenAPI / Swagger**:
+  - Las anotaciones `@Summary`, `@Description`, `@Tags`, `@Param`, `@Success`, `@Failure`, `@Router` y `@Security` pertenecen EXCLUSIVAMENTE a los controllers de Delivery y sus DTOs.
+  - El Dominio y la Aplicación NUNCA deben incluir anotaciones ni metadatos de Swagger.
+  - Al modificar o añadir endpoints o DTOs de entrega, se debe regenerar la documentación ejecutando `make swagger`.
 
 ## Dependencias entre módulos
 
