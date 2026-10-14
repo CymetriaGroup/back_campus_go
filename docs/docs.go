@@ -17,7 +17,1055 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {},
+    "paths": {
+        "/auth/login": {
+            "post": {
+                "description": "Autentica credenciales de usuario y genera un par de tokens JWT (Access y Refresh).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Iniciar sesión",
+                "parameters": [
+                    {
+                        "description": "Credenciales de acceso",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_auth_delivery_http_v1.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_modules_auth_delivery_http_v1.TokenResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Formato de request inválido",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "INVALID_CREDENTIALS: email o contraseña incorrectos",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "ACCOUNT_DISABLED: cuenta deshabilitada",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "423": {
+                        "description": "ACCOUNT_LOCKED: cuenta bloqueada temporalmente",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "IDENTITY_PROVIDER_UNAVAILABLE: servicio de autenticación no disponible",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "description": "Invalida el refresh token del usuario.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Cerrar sesión",
+                "parameters": [
+                    {
+                        "description": "Refresh token a revocar",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_auth_delivery_http_v1.TokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Sin contenido"
+                    },
+                    "400": {
+                        "description": "Formato de request inválido",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Token inválido",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/refresh": {
+            "post": {
+                "description": "Genera un nuevo par de tokens JWT utilizando un refresh token válido.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Renovar token de acceso",
+                "parameters": [
+                    {
+                        "description": "Refresh token",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_auth_delivery_http_v1.TokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_modules_auth_delivery_http_v1.TokenResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Formato de request inválido",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Token inválido o expirado",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tenants": {
+            "get": {
+                "description": "Retorna la lista de todos los tenants registrados.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tenants"
+                ],
+                "summary": "Listar tenants",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Crea una nueva organización/tenant en la plataforma.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tenants"
+                ],
+                "summary": "Crear tenant",
+                "parameters": [
+                    {
+                        "description": "Datos de creación del tenant",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_modules_tenants_application.CreateTenantInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Datos inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "409": {
+                        "description": "El tenant ya existe",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/tenants/{id}": {
+            "get": {
+                "description": "Retorna los detalles de un tenant por su ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tenants"
+                ],
+                "summary": "Obtener tenant por ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del tenant",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Tenant no encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Actualiza la información de un tenant existente.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tenants"
+                ],
+                "summary": "Actualizar tenant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del tenant",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Campos a actualizar del tenant",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_modules_tenants_application.UpdateTenantInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Datos inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Tenant no encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Elimina un tenant por su ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tenants"
+                ],
+                "summary": "Eliminar tenant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del tenant",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Sin contenido"
+                    },
+                    "404": {
+                        "description": "Tenant no encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/users": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna una lista paginada de usuarios con filtros opcionales.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Listar usuarios",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Número de página",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Límite por página",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Término de búsqueda",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "admin",
+                            "user"
+                        ],
+                        "type": "string",
+                        "description": "Filtrar por rol",
+                        "name": "role",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filtrar por estado activo",
+                        "name": "active",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/internal_modules_users_delivery_http_v1.UserResponse"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Requiere rol de Administrador",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Registra un nuevo usuario en la plataforma.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Crear usuario",
+                "parameters": [
+                    {
+                        "description": "Payload de creación de usuario",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_users_delivery_http_v1.CreateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_modules_users_delivery_http_v1.UserResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Petición inválida o datos malformados",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Requiere rol de Administrador",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "El email ya está registrado",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna la información de perfil de un usuario por su ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Obtener usuario",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del usuario",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_modules_users_delivery_http_v1.UserResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Usuario no encontrado",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Actualiza la información de un usuario existente.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Actualizar usuario",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del usuario",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Datos a actualizar del usuario",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_users_delivery_http_v1.UpdateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_modules_users_delivery_http_v1.UserResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Petición inválida",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Requiere rol de Administrador",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Usuario no encontrado",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Elimina un usuario por su ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Eliminar usuario",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del usuario",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Sin contenido"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Requiere rol de Administrador",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Usuario no encontrado",
+                        "schema": {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "hexagonal-go-backend_internal_modules_tenants_application.CreateTenantInput": {
+            "type": "object",
+            "properties": {
+                "branding": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "date_format": {
+                    "type": "string"
+                },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "feature_flags": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "features": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "id": {
+                    "type": "string"
+                },
+                "institutional_email": {
+                    "type": "string"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "limits": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "name": {
+                    "type": "string"
+                },
+                "policies": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "timezone": {
+                    "type": "string"
+                }
+            }
+        },
+        "hexagonal-go-backend_internal_modules_tenants_application.UpdateTenantInput": {
+            "type": "object",
+            "properties": {
+                "branding": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "date_format": {
+                    "type": "string"
+                },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "feature_flags": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "features": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "institutional_email": {
+                    "type": "string"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "limits": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "name": {
+                    "type": "string"
+                },
+                "policies": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "status": {
+                    "type": "string"
+                },
+                "timezone": {
+                    "type": "string"
+                }
+            }
+        },
+        "hexagonal-go-backend_internal_modules_users_domain.Role": {
+            "type": "string",
+            "enum": [
+                "admin",
+                "user"
+            ],
+            "x-enum-varnames": [
+                "RoleAdmin",
+                "RoleUser"
+            ]
+        },
+        "hexagonal-go-backend_internal_platform_http_response.Envelope": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "meta": {}
+            }
+        },
+        "hexagonal-go-backend_internal_platform_http_response.ErrorBody": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "fields": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "hexagonal-go-backend_internal_platform_http_response.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/hexagonal-go-backend_internal_platform_http_response.ErrorBody"
+                },
+                "request_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_auth_delivery_http_v1.LoginRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_auth_delivery_http_v1.TokenRequest": {
+            "type": "object",
+            "required": [
+                "refresh_token"
+            ],
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_auth_delivery_http_v1.TokenResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expires_in": {
+                    "type": "integer"
+                },
+                "refresh_token": {
+                    "type": "string"
+                },
+                "token_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_users_delivery_http_v1.CreateUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name"
+            ],
+            "properties": {
+                "auth_id": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2
+                },
+                "role": {
+                    "enum": [
+                        "admin",
+                        "user"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_modules_users_domain.Role"
+                        }
+                    ]
+                }
+            }
+        },
+        "internal_modules_users_delivery_http_v1.UpdateUserRequest": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2
+                },
+                "role": {
+                    "enum": [
+                        "admin",
+                        "user"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/hexagonal-go-backend_internal_modules_users_domain.Role"
+                        }
+                    ]
+                }
+            }
+        },
+        "internal_modules_users_delivery_http_v1.UserResponse": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "auth_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/hexagonal-go-backend_internal_modules_users_domain.Role"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        }
+    },
     "securityDefinitions": {
         "BearerAuth": {
             "description": "Escribe \"Bearer \" seguido de tu token JWT",
@@ -31,7 +1079,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Go Hexagonal API",

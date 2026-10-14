@@ -20,6 +20,12 @@ type Tx struct {
 	CourseTemplates *CourseTemplatesClient
 	// CourseVersions is the client for interacting with the CourseVersions builders.
 	CourseVersions *CourseVersionsClient
+	// Permission is the client for interacting with the Permission builders.
+	Permission *PermissionClient
+	// Role is the client for interacting with the Role builders.
+	Role *RoleClient
+	// SecurityEvent is the client for interacting with the SecurityEvent builders.
+	SecurityEvent *SecurityEventClient
 	// Syllabi is the client for interacting with the Syllabi builders.
 	Syllabi *SyllabiClient
 	// TenantSettings is the client for interacting with the TenantSettings builders.
@@ -28,6 +34,8 @@ type Tx struct {
 	Tenants *TenantsClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserProfile is the client for interacting with the UserProfile builders.
+	UserProfile *UserProfileClient
 
 	// lazily loaded.
 	client     *Client
@@ -163,10 +171,14 @@ func (tx *Tx) init() {
 	tx.CourseModules = NewCourseModulesClient(tx.config)
 	tx.CourseTemplates = NewCourseTemplatesClient(tx.config)
 	tx.CourseVersions = NewCourseVersionsClient(tx.config)
+	tx.Permission = NewPermissionClient(tx.config)
+	tx.Role = NewRoleClient(tx.config)
+	tx.SecurityEvent = NewSecurityEventClient(tx.config)
 	tx.Syllabi = NewSyllabiClient(tx.config)
 	tx.TenantSettings = NewTenantSettingsClient(tx.config)
 	tx.Tenants = NewTenantsClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserProfile = NewUserProfileClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

@@ -11,6 +11,7 @@ import (
 
 	authapp "hexagonal-go-backend/internal/modules/auth/application"
 	authhttp "hexagonal-go-backend/internal/modules/auth/delivery/http/v1"
+	authinfra "hexagonal-go-backend/internal/modules/auth/infrastructure"
 	memorycache "hexagonal-go-backend/internal/modules/auth/infrastructure/cache/memory"
 	authsecurity "hexagonal-go-backend/internal/modules/auth/infrastructure/security"
 	usersapp "hexagonal-go-backend/internal/modules/users/application"
@@ -18,10 +19,10 @@ import (
 	userdomain "hexagonal-go-backend/internal/modules/users/domain"
 	usermail "hexagonal-go-backend/internal/modules/users/infrastructure/mail"
 	entusers "hexagonal-go-backend/internal/modules/users/infrastructure/persistence/ent"
-	usersecurity "hexagonal-go-backend/internal/modules/users/infrastructure/security"
 	"hexagonal-go-backend/internal/platform/config"
 	"hexagonal-go-backend/internal/platform/database"
 	httpplatform "hexagonal-go-backend/internal/platform/http"
+	"hexagonal-go-backend/internal/platform/identifier"
 	"hexagonal-go-backend/internal/platform/logger"
 	"hexagonal-go-backend/internal/platform/server"
 )
@@ -33,7 +34,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	log := logger.New(cfg.App.LogLevel)
+	log := logger.New(cfg.App.LogLevel, cfg.App.Env)
 	autoMigrate := cfg.App.Env == "development"
 	entClient, _, err := database.OpenPostgres(context.Background(), cfg.Database.URL, cfg.Database.MaxOpenConns, cfg.Database.MaxIdleConns, cfg.Database.ConnMaxLifetime, autoMigrate)
 	if err != nil {
@@ -47,17 +48,28 @@ func main() {
 	}()
 
 	userRepository := entusers.NewUserRepository(entClient)
-	passwordHasher := usersecurity.NewBcryptHasher(0)
 	mailer := usermail.NewLogMailer(log)
-	tokenProvider := authsecurity.NewHMACTokenProvider(cfg.JWT.Secret)
+
+	var tokenProvider authapp.TokenProvider
+	var idp authapp.IdentityProvider
+	var zitadelClient *authinfra.ZitadelClient
+	if cfg.Zitadel.Enabled {
+		log.Info("using ZITADEL JWKS token provider", "jwks_url", cfg.Zitadel.JWKSURL)
+		tokenProvider = authsecurity.NewZitadelTokenProvider(cfg.Zitadel.JWKSURL)
+		zitadelClient = authinfra.NewZitadelClient(cfg.Zitadel.URL, cfg.Zitadel.ProjectID, cfg.Zitadel.ClientID, cfg.Zitadel.RedirectURI, cfg.Zitadel.PAT)
+		idp = zitadelClient
+	} else {
+		log.Info("using local HMAC token provider")
+		tokenProvider = authsecurity.NewHMACTokenProvider(cfg.JWT.Secret)
+	}
 	cache := memorycache.New()
 
-	userService := usersapp.NewUserService(userRepository, passwordHasher, mailer)
-	if err := seedAdmin(context.Background(), userService, cfg); err != nil {
+	userService := usersapp.NewUserService(userRepository, mailer)
+	if err := seedAdmin(context.Background(), userService, userRepository, zitadelClient, log, cfg); err != nil {
 		log.Error("failed to create development administrator", "error", err)
 		os.Exit(1)
 	}
-	authService := authapp.NewAuthService(userRepository, passwordHasher, tokenProvider, cache, cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL)
+	authService := authapp.NewAuthService(userRepository, tokenProvider, cache, cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL, idp)
 
 	router := httpplatform.NewRouter(
 		cfg,
@@ -65,6 +77,7 @@ func main() {
 		usershttp.NewController(userService),
 		authhttp.NewController(authService),
 		tokenProvider,
+		userRepository,
 	)
 	httpServer := server.New(router, cfg.App)
 
@@ -96,14 +109,46 @@ func main() {
 	log.Info("http server stopped")
 }
 
-func seedAdmin(ctx context.Context, service usersapp.UserService, cfg config.Config) error {
+func seedAdmin(ctx context.Context, service usersapp.UserService, repo usersapp.UserRepository, zitadel *authinfra.ZitadelClient, log *slog.Logger, cfg config.Config) error {
+	authID := "admin-seed-id"
+
+	if zitadel != nil && cfg.Zitadel.Enabled && cfg.Zitadel.PAT != "" {
+		log.Info("syncing administrator with ZITADEL...", "email", cfg.Security.AdminEmail)
+
+		existingUID, errFind := zitadel.FindUser(ctx, cfg.Security.AdminEmail)
+		if errFind == nil && existingUID != "" {
+			authID = existingUID
+			if err := zitadel.SetUserPassword(ctx, existingUID, cfg.Security.AdminPassword); err != nil {
+				log.Warn("could not update admin password in ZITADEL", "error", err)
+			} else {
+				log.Info("administrator password verified in ZITADEL", "auth_id", authID)
+			}
+		} else {
+			createdUID, errCreate := zitadel.CreateUser(ctx, cfg.Security.AdminEmail, "Administrator", cfg.Security.AdminPassword)
+			if errCreate != nil {
+				log.Warn("could not create admin user in ZITADEL", "error", errCreate)
+			} else if createdUID != "" {
+				authID = createdUID
+				log.Info("administrator created in ZITADEL", "auth_id", authID)
+			}
+		}
+	}
+
 	_, err := service.Create(ctx, usersapp.CreateUserInput{
+		TenantID: identifier.New(),
+		AuthID:   authID,
 		Name:     "Administrator",
 		Email:    cfg.Security.AdminEmail,
-		Password: cfg.Security.AdminPassword,
 		Role:     userdomain.RoleAdmin,
 	})
 	if errors.Is(err, userdomain.ErrEmailAlreadyExists) {
+		if repo != nil && authID != "admin-seed-id" {
+			if existing, errFind := repo.FindByEmail(ctx, cfg.Security.AdminEmail); errFind == nil && existing.AuthID != authID {
+				existing.AuthID = authID
+				_ = repo.Update(ctx, existing)
+				log.Info("updated administrator auth_id in database", "auth_id", authID)
+			}
+		}
 		return nil
 	}
 	return err

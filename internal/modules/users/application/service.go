@@ -12,33 +12,44 @@ import (
 
 type userService struct {
 	repo   UserRepository
-	hasher PasswordHasher
 	mailer Mailer
 }
 
-func NewUserService(repo UserRepository, hasher PasswordHasher, mailer Mailer) UserService {
-	return &userService{repo: repo, hasher: hasher, mailer: mailer}
+func NewUserService(repo UserRepository, mailer Mailer) UserService {
+	return &userService{repo: repo, mailer: mailer}
 }
 
 func (s *userService) Create(ctx context.Context, in CreateUserInput) (*domain.User, error) {
-	in.Name, in.Email = strings.TrimSpace(in.Name), strings.ToLower(strings.TrimSpace(in.Email))
-	if len(in.Name) < 2 || in.Email == "" || len(in.Password) < 8 {
+	in.Name, in.Email, in.AuthID = strings.TrimSpace(in.Name), strings.ToLower(strings.TrimSpace(in.Email)), strings.TrimSpace(in.AuthID)
+	if len(in.Name) < 2 || in.Email == "" {
 		return nil, domain.ErrInvalidInput
+	}
+	if in.AuthID != "" {
+		if existing, err := s.repo.FindByAuthID(ctx, in.AuthID); err == nil && existing != nil {
+			return existing, nil
+		}
 	}
 	if _, err := s.repo.FindByEmail(ctx, in.Email); err == nil {
 		return nil, domain.ErrEmailAlreadyExists
 	} else if !errors.Is(err, domain.ErrUserNotFound) {
 		return nil, err
 	}
-	hash, err := s.hasher.Hash(in.Password)
-	if err != nil {
-		return nil, err
-	}
 	if in.Role == "" {
 		in.Role = domain.RoleUser
 	}
 	now := time.Now().UTC()
-	u := &domain.User{ID: identifier.New(), Name: in.Name, Email: in.Email, PasswordHash: hash, Role: in.Role, Active: true, CreatedAt: now, UpdatedAt: now}
+	u := &domain.User{
+		ID:        identifier.New(),
+		AuthID:    in.AuthID,
+		TenantID:  in.TenantID,
+		Name:      in.Name,
+		Email:     in.Email,
+		Role:      in.Role,
+		Status:    domain.StatusActive,
+		Active:    true,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
 	if err := s.repo.Create(ctx, u); err != nil {
 		return nil, err
 	}

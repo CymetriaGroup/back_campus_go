@@ -10,10 +10,14 @@ import (
 	"hexagonal-go-backend/internal/ent/coursemodules"
 	"hexagonal-go-backend/internal/ent/coursetemplates"
 	"hexagonal-go-backend/internal/ent/courseversions"
+	"hexagonal-go-backend/internal/ent/permission"
+	"hexagonal-go-backend/internal/ent/role"
+	"hexagonal-go-backend/internal/ent/securityevent"
 	"hexagonal-go-backend/internal/ent/syllabi"
 	"hexagonal-go-backend/internal/ent/tenants"
 	"hexagonal-go-backend/internal/ent/tenantsettings"
 	"hexagonal-go-backend/internal/ent/user"
+	"hexagonal-go-backend/internal/ent/userprofile"
 	"reflect"
 	"sync"
 
@@ -84,10 +88,14 @@ func checkColumn(t, c string) error {
 			coursemodules.Table:    coursemodules.ValidColumn,
 			coursetemplates.Table:  coursetemplates.ValidColumn,
 			courseversions.Table:   courseversions.ValidColumn,
+			permission.Table:       permission.ValidColumn,
+			role.Table:             role.ValidColumn,
+			securityevent.Table:    securityevent.ValidColumn,
 			syllabi.Table:          syllabi.ValidColumn,
 			tenantsettings.Table:   tenantsettings.ValidColumn,
 			tenants.Table:          tenants.ValidColumn,
 			user.Table:             user.ValidColumn,
+			userprofile.Table:      userprofile.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

@@ -9,6 +9,7 @@ import (
 
 type TokenClaims struct {
 	Subject   string
+	TenantID  string
 	Role      userdomain.Role
 	ExpiresAt time.Time
 	TokenID   string
@@ -28,6 +29,12 @@ type AuthService interface {
 	Login(context.Context, string, string) (TokenPair, error)
 	Refresh(context.Context, string) (TokenPair, error)
 	Logout(context.Context, string) error
+}
+
+type IdentityProvider interface {
+	Authenticate(ctx context.Context, username, password string) (TokenPair, error)
+	Refresh(ctx context.Context, refreshToken string) (TokenPair, error)
+	Logout(ctx context.Context, token string) error
 }
 
 type Cache interface {

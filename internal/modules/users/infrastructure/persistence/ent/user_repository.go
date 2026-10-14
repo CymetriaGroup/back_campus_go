@@ -23,21 +23,37 @@ func NewUserRepository(client *entclient.Client) *UserRepository {
 }
 
 func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
-	_, err := r.client.User.Create().
+	builder := r.client.User.Create().
 		SetID(user.ID).
+		SetAuthID(user.AuthID).
 		SetName(user.Name).
 		SetEmail(user.Email).
-		SetPasswordHash(user.PasswordHash).
 		SetRole(entuser.Role(user.Role)).
 		SetActive(user.Active).
 		SetCreatedAt(user.CreatedAt).
-		SetUpdatedAt(user.UpdatedAt).
-		Save(ctx)
+		SetUpdatedAt(user.UpdatedAt)
+	if user.Status != "" {
+		builder.SetStatus(entuser.Status(user.Status))
+	}
+	if user.TenantID != "" {
+		builder.SetTenantID(user.TenantID)
+	}
+	_, err := builder.Save(ctx)
 	return translateError(err)
 }
 
 func (r *UserRepository) FindByID(ctx context.Context, id string) (*domain.User, error) {
 	user, err := r.client.User.Get(ctx, id)
+	if err != nil {
+		return nil, translateError(err)
+	}
+	return toDomain(user), nil
+}
+
+func (r *UserRepository) FindByAuthID(ctx context.Context, authID string) (*domain.User, error) {
+	user, err := r.client.User.Query().
+		Where(entuser.AuthIDEQ(strings.TrimSpace(authID))).
+		Only(ctx)
 	if err != nil {
 		return nil, translateError(err)
 	}
@@ -97,14 +113,17 @@ func (r *UserRepository) List(ctx context.Context, filter application.UserFilter
 }
 
 func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
-	_, err := r.client.User.UpdateOneID(user.ID).
+	builder := r.client.User.UpdateOneID(user.ID).
+		SetAuthID(user.AuthID).
 		SetName(user.Name).
 		SetEmail(user.Email).
-		SetPasswordHash(user.PasswordHash).
 		SetRole(entuser.Role(user.Role)).
 		SetActive(user.Active).
-		SetUpdatedAt(user.UpdatedAt).
-		Save(ctx)
+		SetUpdatedAt(user.UpdatedAt)
+	if user.Status != "" {
+		builder.SetStatus(entuser.Status(user.Status))
+	}
+	_, err := builder.Save(ctx)
 	return translateError(err)
 }
 

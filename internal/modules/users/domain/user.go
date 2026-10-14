@@ -9,13 +9,24 @@ const (
 	RoleUser  Role = "user"
 )
 
+type UserStatus string
+
+const (
+	StatusActive    UserStatus = "ACTIVE"
+	StatusInactive  UserStatus = "INACTIVE"
+	StatusSuspended UserStatus = "SUSPENDED"
+	StatusBlocked   UserStatus = "BLOCKED"
+)
+
 type User struct {
-	ID           string
-	Name         string
-	Email        string
-	PasswordHash string
-	Role         Role
-	Active       bool
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID        string
+	AuthID    string
+	TenantID  string
+	Name      string
+	Email     string
+	Role      Role
+	Status    UserStatus
+	Active    bool
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

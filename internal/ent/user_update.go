@@ -7,7 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"hexagonal-go-backend/internal/ent/predicate"
+	"hexagonal-go-backend/internal/ent/role"
+	"hexagonal-go-backend/internal/ent/securityevent"
 	"hexagonal-go-backend/internal/ent/user"
+	"hexagonal-go-backend/internal/ent/userprofile"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -25,6 +28,20 @@ type UserUpdate struct {
 // Where appends a list predicates to the UserUpdate builder.
 func (_u *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 	_u.mutation.Where(ps...)
+	return _u
+}
+
+// SetAuthID sets the "auth_id" field.
+func (_u *UserUpdate) SetAuthID(v string) *UserUpdate {
+	_u.mutation.SetAuthID(v)
+	return _u
+}
+
+// SetNillableAuthID sets the "auth_id" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableAuthID(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetAuthID(*v)
+	}
 	return _u
 }
 
@@ -56,20 +73,6 @@ func (_u *UserUpdate) SetNillableEmail(v *string) *UserUpdate {
 	return _u
 }
 
-// SetPasswordHash sets the "password_hash" field.
-func (_u *UserUpdate) SetPasswordHash(v string) *UserUpdate {
-	_u.mutation.SetPasswordHash(v)
-	return _u
-}
-
-// SetNillablePasswordHash sets the "password_hash" field if the given value is not nil.
-func (_u *UserUpdate) SetNillablePasswordHash(v *string) *UserUpdate {
-	if v != nil {
-		_u.SetPasswordHash(*v)
-	}
-	return _u
-}
-
 // SetRole sets the "role" field.
 func (_u *UserUpdate) SetRole(v user.Role) *UserUpdate {
 	_u.mutation.SetRole(v)
@@ -80,6 +83,20 @@ func (_u *UserUpdate) SetRole(v user.Role) *UserUpdate {
 func (_u *UserUpdate) SetNillableRole(v *user.Role) *UserUpdate {
 	if v != nil {
 		_u.SetRole(*v)
+	}
+	return _u
+}
+
+// SetStatus sets the "status" field.
+func (_u *UserUpdate) SetStatus(v user.Status) *UserUpdate {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableStatus(v *user.Status) *UserUpdate {
+	if v != nil {
+		_u.SetStatus(*v)
 	}
 	return _u
 }
@@ -104,9 +121,106 @@ func (_u *UserUpdate) SetUpdatedAt(v time.Time) *UserUpdate {
 	return _u
 }
 
+// SetProfileID sets the "profile" edge to the UserProfile entity by ID.
+func (_u *UserUpdate) SetProfileID(id string) *UserUpdate {
+	_u.mutation.SetProfileID(id)
+	return _u
+}
+
+// SetNillableProfileID sets the "profile" edge to the UserProfile entity by ID if the given value is not nil.
+func (_u *UserUpdate) SetNillableProfileID(id *string) *UserUpdate {
+	if id != nil {
+		_u = _u.SetProfileID(*id)
+	}
+	return _u
+}
+
+// SetProfile sets the "profile" edge to the UserProfile entity.
+func (_u *UserUpdate) SetProfile(v *UserProfile) *UserUpdate {
+	return _u.SetProfileID(v.ID)
+}
+
+// AddSecurityEventIDs adds the "security_events" edge to the SecurityEvent entity by IDs.
+func (_u *UserUpdate) AddSecurityEventIDs(ids ...string) *UserUpdate {
+	_u.mutation.AddSecurityEventIDs(ids...)
+	return _u
+}
+
+// AddSecurityEvents adds the "security_events" edges to the SecurityEvent entity.
+func (_u *UserUpdate) AddSecurityEvents(v ...*SecurityEvent) *UserUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSecurityEventIDs(ids...)
+}
+
+// AddPlatformRoleIDs adds the "platform_roles" edge to the Role entity by IDs.
+func (_u *UserUpdate) AddPlatformRoleIDs(ids ...string) *UserUpdate {
+	_u.mutation.AddPlatformRoleIDs(ids...)
+	return _u
+}
+
+// AddPlatformRoles adds the "platform_roles" edges to the Role entity.
+func (_u *UserUpdate) AddPlatformRoles(v ...*Role) *UserUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPlatformRoleIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
+}
+
+// ClearProfile clears the "profile" edge to the UserProfile entity.
+func (_u *UserUpdate) ClearProfile() *UserUpdate {
+	_u.mutation.ClearProfile()
+	return _u
+}
+
+// ClearSecurityEvents clears all "security_events" edges to the SecurityEvent entity.
+func (_u *UserUpdate) ClearSecurityEvents() *UserUpdate {
+	_u.mutation.ClearSecurityEvents()
+	return _u
+}
+
+// RemoveSecurityEventIDs removes the "security_events" edge to SecurityEvent entities by IDs.
+func (_u *UserUpdate) RemoveSecurityEventIDs(ids ...string) *UserUpdate {
+	_u.mutation.RemoveSecurityEventIDs(ids...)
+	return _u
+}
+
+// RemoveSecurityEvents removes "security_events" edges to SecurityEvent entities.
+func (_u *UserUpdate) RemoveSecurityEvents(v ...*SecurityEvent) *UserUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSecurityEventIDs(ids...)
+}
+
+// ClearPlatformRoles clears all "platform_roles" edges to the Role entity.
+func (_u *UserUpdate) ClearPlatformRoles() *UserUpdate {
+	_u.mutation.ClearPlatformRoles()
+	return _u
+}
+
+// RemovePlatformRoleIDs removes the "platform_roles" edge to Role entities by IDs.
+func (_u *UserUpdate) RemovePlatformRoleIDs(ids ...string) *UserUpdate {
+	_u.mutation.RemovePlatformRoleIDs(ids...)
+	return _u
+}
+
+// RemovePlatformRoles removes "platform_roles" edges to Role entities.
+func (_u *UserUpdate) RemovePlatformRoles(v ...*Role) *UserUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePlatformRoleIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -147,6 +261,11 @@ func (_u *UserUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *UserUpdate) check() error {
+	if v, ok := _u.mutation.AuthID(); ok {
+		if err := user.AuthIDValidator(v); err != nil {
+			return &ValidationError{Name: "auth_id", err: fmt.Errorf(`ent: validator failed for field "User.auth_id": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Name(); ok {
 		if err := user.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "User.name": %w`, err)}
@@ -157,14 +276,14 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.PasswordHash(); ok {
-		if err := user.PasswordHashValidator(v); err != nil {
-			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`ent: validator failed for field "User.password_hash": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Role(); ok {
 		if err := user.RoleValidator(v); err != nil {
 			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "User.role": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Status(); ok {
+		if err := user.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
 	return nil
@@ -182,23 +301,145 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.AuthID(); ok {
+		_spec.SetField(user.FieldAuthID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(user.FieldName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.PasswordHash(); ok {
-		_spec.SetField(user.FieldPasswordHash, field.TypeString, value)
-	}
 	if value, ok := _u.mutation.Role(); ok {
 		_spec.SetField(user.FieldRole, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Active(); ok {
 		_spec.SetField(user.FieldActive, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.ProfileCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.ProfileTable,
+			Columns: []string{user.ProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userprofile.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ProfileIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.ProfileTable,
+			Columns: []string{user.ProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userprofile.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SecurityEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SecurityEventsTable,
+			Columns: []string{user.SecurityEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityevent.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSecurityEventsIDs(); len(nodes) > 0 && !_u.mutation.SecurityEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SecurityEventsTable,
+			Columns: []string{user.SecurityEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityevent.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SecurityEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SecurityEventsTable,
+			Columns: []string{user.SecurityEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityevent.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PlatformRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.PlatformRolesTable,
+			Columns: user.PlatformRolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPlatformRolesIDs(); len(nodes) > 0 && !_u.mutation.PlatformRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.PlatformRolesTable,
+			Columns: user.PlatformRolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PlatformRolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.PlatformRolesTable,
+			Columns: user.PlatformRolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -218,6 +459,20 @@ type UserUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *UserMutation
+}
+
+// SetAuthID sets the "auth_id" field.
+func (_u *UserUpdateOne) SetAuthID(v string) *UserUpdateOne {
+	_u.mutation.SetAuthID(v)
+	return _u
+}
+
+// SetNillableAuthID sets the "auth_id" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableAuthID(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetAuthID(*v)
+	}
+	return _u
 }
 
 // SetName sets the "name" field.
@@ -248,20 +503,6 @@ func (_u *UserUpdateOne) SetNillableEmail(v *string) *UserUpdateOne {
 	return _u
 }
 
-// SetPasswordHash sets the "password_hash" field.
-func (_u *UserUpdateOne) SetPasswordHash(v string) *UserUpdateOne {
-	_u.mutation.SetPasswordHash(v)
-	return _u
-}
-
-// SetNillablePasswordHash sets the "password_hash" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillablePasswordHash(v *string) *UserUpdateOne {
-	if v != nil {
-		_u.SetPasswordHash(*v)
-	}
-	return _u
-}
-
 // SetRole sets the "role" field.
 func (_u *UserUpdateOne) SetRole(v user.Role) *UserUpdateOne {
 	_u.mutation.SetRole(v)
@@ -272,6 +513,20 @@ func (_u *UserUpdateOne) SetRole(v user.Role) *UserUpdateOne {
 func (_u *UserUpdateOne) SetNillableRole(v *user.Role) *UserUpdateOne {
 	if v != nil {
 		_u.SetRole(*v)
+	}
+	return _u
+}
+
+// SetStatus sets the "status" field.
+func (_u *UserUpdateOne) SetStatus(v user.Status) *UserUpdateOne {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableStatus(v *user.Status) *UserUpdateOne {
+	if v != nil {
+		_u.SetStatus(*v)
 	}
 	return _u
 }
@@ -296,9 +551,106 @@ func (_u *UserUpdateOne) SetUpdatedAt(v time.Time) *UserUpdateOne {
 	return _u
 }
 
+// SetProfileID sets the "profile" edge to the UserProfile entity by ID.
+func (_u *UserUpdateOne) SetProfileID(id string) *UserUpdateOne {
+	_u.mutation.SetProfileID(id)
+	return _u
+}
+
+// SetNillableProfileID sets the "profile" edge to the UserProfile entity by ID if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableProfileID(id *string) *UserUpdateOne {
+	if id != nil {
+		_u = _u.SetProfileID(*id)
+	}
+	return _u
+}
+
+// SetProfile sets the "profile" edge to the UserProfile entity.
+func (_u *UserUpdateOne) SetProfile(v *UserProfile) *UserUpdateOne {
+	return _u.SetProfileID(v.ID)
+}
+
+// AddSecurityEventIDs adds the "security_events" edge to the SecurityEvent entity by IDs.
+func (_u *UserUpdateOne) AddSecurityEventIDs(ids ...string) *UserUpdateOne {
+	_u.mutation.AddSecurityEventIDs(ids...)
+	return _u
+}
+
+// AddSecurityEvents adds the "security_events" edges to the SecurityEvent entity.
+func (_u *UserUpdateOne) AddSecurityEvents(v ...*SecurityEvent) *UserUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddSecurityEventIDs(ids...)
+}
+
+// AddPlatformRoleIDs adds the "platform_roles" edge to the Role entity by IDs.
+func (_u *UserUpdateOne) AddPlatformRoleIDs(ids ...string) *UserUpdateOne {
+	_u.mutation.AddPlatformRoleIDs(ids...)
+	return _u
+}
+
+// AddPlatformRoles adds the "platform_roles" edges to the Role entity.
+func (_u *UserUpdateOne) AddPlatformRoles(v ...*Role) *UserUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPlatformRoleIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
+}
+
+// ClearProfile clears the "profile" edge to the UserProfile entity.
+func (_u *UserUpdateOne) ClearProfile() *UserUpdateOne {
+	_u.mutation.ClearProfile()
+	return _u
+}
+
+// ClearSecurityEvents clears all "security_events" edges to the SecurityEvent entity.
+func (_u *UserUpdateOne) ClearSecurityEvents() *UserUpdateOne {
+	_u.mutation.ClearSecurityEvents()
+	return _u
+}
+
+// RemoveSecurityEventIDs removes the "security_events" edge to SecurityEvent entities by IDs.
+func (_u *UserUpdateOne) RemoveSecurityEventIDs(ids ...string) *UserUpdateOne {
+	_u.mutation.RemoveSecurityEventIDs(ids...)
+	return _u
+}
+
+// RemoveSecurityEvents removes "security_events" edges to SecurityEvent entities.
+func (_u *UserUpdateOne) RemoveSecurityEvents(v ...*SecurityEvent) *UserUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveSecurityEventIDs(ids...)
+}
+
+// ClearPlatformRoles clears all "platform_roles" edges to the Role entity.
+func (_u *UserUpdateOne) ClearPlatformRoles() *UserUpdateOne {
+	_u.mutation.ClearPlatformRoles()
+	return _u
+}
+
+// RemovePlatformRoleIDs removes the "platform_roles" edge to Role entities by IDs.
+func (_u *UserUpdateOne) RemovePlatformRoleIDs(ids ...string) *UserUpdateOne {
+	_u.mutation.RemovePlatformRoleIDs(ids...)
+	return _u
+}
+
+// RemovePlatformRoles removes "platform_roles" edges to Role entities.
+func (_u *UserUpdateOne) RemovePlatformRoles(v ...*Role) *UserUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePlatformRoleIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -352,6 +704,11 @@ func (_u *UserUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *UserUpdateOne) check() error {
+	if v, ok := _u.mutation.AuthID(); ok {
+		if err := user.AuthIDValidator(v); err != nil {
+			return &ValidationError{Name: "auth_id", err: fmt.Errorf(`ent: validator failed for field "User.auth_id": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Name(); ok {
 		if err := user.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "User.name": %w`, err)}
@@ -362,14 +719,14 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.PasswordHash(); ok {
-		if err := user.PasswordHashValidator(v); err != nil {
-			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`ent: validator failed for field "User.password_hash": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Role(); ok {
 		if err := user.RoleValidator(v); err != nil {
 			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "User.role": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Status(); ok {
+		if err := user.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
 	return nil
@@ -404,23 +761,145 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.AuthID(); ok {
+		_spec.SetField(user.FieldAuthID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(user.FieldName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.PasswordHash(); ok {
-		_spec.SetField(user.FieldPasswordHash, field.TypeString, value)
-	}
 	if value, ok := _u.mutation.Role(); ok {
 		_spec.SetField(user.FieldRole, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Active(); ok {
 		_spec.SetField(user.FieldActive, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.ProfileCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.ProfileTable,
+			Columns: []string{user.ProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userprofile.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ProfileIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.ProfileTable,
+			Columns: []string{user.ProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userprofile.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SecurityEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SecurityEventsTable,
+			Columns: []string{user.SecurityEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityevent.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedSecurityEventsIDs(); len(nodes) > 0 && !_u.mutation.SecurityEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SecurityEventsTable,
+			Columns: []string{user.SecurityEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityevent.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SecurityEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SecurityEventsTable,
+			Columns: []string{user.SecurityEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(securityevent.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PlatformRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.PlatformRolesTable,
+			Columns: user.PlatformRolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPlatformRolesIDs(); len(nodes) > 0 && !_u.mutation.PlatformRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.PlatformRolesTable,
+			Columns: user.PlatformRolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PlatformRolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.PlatformRolesTable,
+			Columns: user.PlatformRolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &User{config: _u.config}
 	_spec.Assign = _node.assignValues

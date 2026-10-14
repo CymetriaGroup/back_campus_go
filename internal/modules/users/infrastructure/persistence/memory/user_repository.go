@@ -41,6 +41,18 @@ func (r *UserRepository) FindByID(_ context.Context, id string) (*domain.User, e
 	return clone(user), nil
 }
 
+func (r *UserRepository) FindByAuthID(_ context.Context, authID string) (*domain.User, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	authID = strings.TrimSpace(authID)
+	for _, user := range r.users {
+		if user.AuthID == authID {
+			return clone(user), nil
+		}
+	}
+	return nil, domain.ErrUserNotFound
+}
+
 func (r *UserRepository) FindByEmail(_ context.Context, email string) (*domain.User, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()

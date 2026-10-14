@@ -29,6 +29,18 @@ func (ctrl *Controller) RegisterRoutes(rg *gin.RouterGroup) {
 	}
 }
 
+// Create godoc
+// @Summary      Crear tenant
+// @Description  Crea una nueva organización/tenant en la plataforma.
+// @Tags         tenants
+// @Accept       json
+// @Produce      json
+// @Param        request body application.CreateTenantInput true "Datos de creación del tenant"
+// @Success      201 {object} map[string]any
+// @Failure      400 {object} map[string]any "Datos inválidos"
+// @Failure      409 {object} map[string]any "El tenant ya existe"
+// @Failure      500 {object} map[string]any "Error interno"
+// @Router       /tenants [post]
 func (ctrl *Controller) Create(c *gin.Context) {
 	var input application.CreateTenantInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -45,6 +57,17 @@ func (ctrl *Controller) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"data": tenant})
 }
 
+// GetByID godoc
+// @Summary      Obtener tenant por ID
+// @Description  Retorna los detalles de un tenant por su ID.
+// @Tags         tenants
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "ID del tenant"
+// @Success      200 {object} map[string]any
+// @Failure      404 {object} map[string]any "Tenant no encontrado"
+// @Failure      500 {object} map[string]any "Error interno"
+// @Router       /tenants/{id} [get]
 func (ctrl *Controller) GetByID(c *gin.Context) {
 	id := c.Param("id")
 	tenant, err := ctrl.service.GetByID(c.Request.Context(), id)
@@ -56,6 +79,15 @@ func (ctrl *Controller) GetByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": tenant})
 }
 
+// List godoc
+// @Summary      Listar tenants
+// @Description  Retorna la lista de todos los tenants registrados.
+// @Tags         tenants
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} map[string]any
+// @Failure      500 {object} map[string]any "Error interno"
+// @Router       /tenants [get]
 func (ctrl *Controller) List(c *gin.Context) {
 	tenants, err := ctrl.service.List(c.Request.Context())
 	if err != nil {
@@ -66,6 +98,19 @@ func (ctrl *Controller) List(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": tenants})
 }
 
+// Update godoc
+// @Summary      Actualizar tenant
+// @Description  Actualiza la información de un tenant existente.
+// @Tags         tenants
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "ID del tenant"
+// @Param        request body application.UpdateTenantInput true "Campos a actualizar del tenant"
+// @Success      200 {object} map[string]any
+// @Failure      400 {object} map[string]any "Datos inválidos"
+// @Failure      404 {object} map[string]any "Tenant no encontrado"
+// @Failure      500 {object} map[string]any "Error interno"
+// @Router       /tenants/{id} [put]
 func (ctrl *Controller) Update(c *gin.Context) {
 	id := c.Param("id")
 	var input application.UpdateTenantInput
@@ -83,6 +128,17 @@ func (ctrl *Controller) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": tenant})
 }
 
+// Delete godoc
+// @Summary      Eliminar tenant
+// @Description  Elimina un tenant por su ID.
+// @Tags         tenants
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "ID del tenant"
+// @Success      204 "Sin contenido"
+// @Failure      404 {object} map[string]any "Tenant no encontrado"
+// @Failure      500 {object} map[string]any "Error interno"
+// @Router       /tenants/{id} [delete]
 func (ctrl *Controller) Delete(c *gin.Context) {
 	id := c.Param("id")
 	if err := ctrl.service.Delete(c.Request.Context(), id); err != nil {

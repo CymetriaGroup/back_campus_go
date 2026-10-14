@@ -15,8 +15,10 @@ type UserFilter struct {
 }
 
 type CreateUserInput struct {
-	Name, Email, Password string
-	Role                  domain.Role
+	TenantID    string
+	AuthID      string
+	Name, Email string
+	Role        domain.Role
 }
 
 type UpdateUserInput struct {
@@ -28,6 +30,7 @@ type UpdateUserInput struct {
 type UserRepository interface {
 	Create(context.Context, *domain.User) error
 	FindByID(context.Context, string) (*domain.User, error)
+	FindByAuthID(context.Context, string) (*domain.User, error)
 	FindByEmail(context.Context, string) (*domain.User, error)
 	List(context.Context, UserFilter) ([]domain.User, int, error)
 	Update(context.Context, *domain.User) error
@@ -40,11 +43,6 @@ type UserService interface {
 	List(context.Context, UserFilter) ([]domain.User, int, error)
 	Update(context.Context, string, UpdateUserInput) (*domain.User, error)
 	Delete(context.Context, string) error
-}
-
-type PasswordHasher interface {
-	Hash(string) (string, error)
-	Compare(string, string) error
 }
 
 type MailMessage struct{ To, Subject, Body string }

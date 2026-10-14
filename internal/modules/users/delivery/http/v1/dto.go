@@ -7,10 +7,10 @@ import (
 )
 
 type CreateUserRequest struct {
-	Name     string      `json:"name" binding:"required,min=2,max=100"`
-	Email    string      `json:"email" binding:"required,email"`
-	Password string      `json:"password" binding:"required,min=8"`
-	Role     domain.Role `json:"role" binding:"omitempty,oneof=admin user"`
+	AuthID string      `json:"auth_id" binding:"omitempty"`
+	Name   string      `json:"name" binding:"required,min=2,max=100"`
+	Email  string      `json:"email" binding:"required,email"`
+	Role   domain.Role `json:"role" binding:"omitempty,oneof=admin user"`
 }
 
 type UpdateUserRequest struct {
@@ -22,6 +22,7 @@ type UpdateUserRequest struct {
 
 type UserResponse struct {
 	ID        string      `json:"id"`
+	AuthID    string      `json:"auth_id"`
 	Name      string      `json:"name"`
 	Email     string      `json:"email"`
 	Role      domain.Role `json:"role"`
@@ -31,5 +32,5 @@ type UserResponse struct {
 }
 
 func userResponse(user *domain.User) UserResponse {
-	return UserResponse{ID: user.ID, Name: user.Name, Email: user.Email, Role: user.Role, Active: user.Active, CreatedAt: user.CreatedAt, UpdatedAt: user.UpdatedAt}
+	return UserResponse{ID: user.ID, AuthID: user.AuthID, Name: user.Name, Email: user.Email, Role: user.Role, Active: user.Active, CreatedAt: user.CreatedAt, UpdatedAt: user.UpdatedAt}
 }

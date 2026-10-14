@@ -18,6 +18,15 @@ type CourseTemplates func(*sql.Selector)
 // CourseVersions is the predicate function for courseversions builders.
 type CourseVersions func(*sql.Selector)
 
+// Permission is the predicate function for permission builders.
+type Permission func(*sql.Selector)
+
+// Role is the predicate function for role builders.
+type Role func(*sql.Selector)
+
+// SecurityEvent is the predicate function for securityevent builders.
+type SecurityEvent func(*sql.Selector)
+
 // Syllabi is the predicate function for syllabi builders.
 type Syllabi func(*sql.Selector)
 
@@ -29,3 +38,6 @@ type Tenants func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
+
+// UserProfile is the predicate function for userprofile builders.
+type UserProfile func(*sql.Selector)
